@@ -18,6 +18,7 @@ use AdactiveSas\Saml2BridgeBundle\SAML2\Event\AuthenticationSuccessEvent;
 use AdactiveSas\Saml2BridgeBundle\SAML2\Event\GetAuthnResponseEvent;
 use AdactiveSas\Saml2BridgeBundle\SAML2\Event\LogoutEvent;
 use AdactiveSas\Saml2BridgeBundle\SAML2\Event\Saml2Events;
+use AdactiveSas\Saml2BridgeBundle\SAML2\Metadata\MetadataFactory;
 use AdactiveSas\Saml2BridgeBundle\SAML2\State\SamlState;
 use AdactiveSas\Saml2BridgeBundle\SAML2\State\SamlStateHandler;
 use Psr\Log\LoggerInterface;
@@ -78,6 +79,11 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
     protected $eventDispatcher;
 
     /**
+     * @var MetadataFactory
+     */
+    protected $metadataFactory;
+
+    /**
      * HostedIdentityProvider constructor.
      * @param ServiceProviderRepository $serviceProviderRepository
      * @param HostedIdentityProvider $identityProvider
@@ -90,7 +96,8 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
         HostedIdentityProvider $identityProvider,
         HttpBindingContainer $bindingContainer,
         SamlStateHandler $stateHandler,
-        EventDispatcherInterface $eventDispatcher
+        EventDispatcherInterface $eventDispatcher,
+        MetadataFactory $metadataFactory
     )
     {
         $this->serviceProviderRepository = $serviceProviderRepository;
@@ -99,6 +106,7 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
         $this->bindingContainer = $bindingContainer;
         $this->stateHandler = $stateHandler;
         $this->eventDispatcher = $eventDispatcher;
+        $this->metadataFactory = $metadataFactory;
 
         $this->setLogger(new NullLogger());
     }
@@ -222,6 +230,14 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
 
         $this->stateHandler->get()->setOriginalLogoutResponse($event->getResponse());
         $this->stateHandler->apply(SamlStateHandler::TRANSITION_SLS_END_DISPATCH);
+    }
+
+    /**
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function getMetadataXmlResponse()
+    {
+        return $this->metadataFactory->getMetadataResponse();
     }
 
     /**
