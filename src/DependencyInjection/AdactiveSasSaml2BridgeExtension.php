@@ -37,6 +37,10 @@ class AdactiveSasSaml2BridgeExtension extends Extension
      */
     private function parseHostedConfiguration(array $configuration, ContainerBuilder $container)
     {
+        $container
+            ->getDefinition('adactive_sas_saml2_bridge.configuration.hosted_entities')
+            ->replaceArgument(2, $configuration['metadata_route']);
+
         $this->parseHostedIdpConfiguration($configuration['identity_provider'], $container);
     }
 

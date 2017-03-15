@@ -25,6 +25,10 @@
             <argument type="service" id="adactive_sas_saml2_bridge.http.redirect_binding" />
             <argument type="service" id="adactive_sas_saml2_bridge.http.post_binding" />
         </service>
+        <service id="adactive_sas_saml2_bridge.metadata.factory" class="AdactiveSas\Saml2BridgeBundle\SAML2\Metadata\MetadataFactory">
+            <argument type="service" id="templating" />
+            <argument type="service" id="adactive_sas_saml2_bridge.configuration.hosted_entities" />
+        </service>
         <service id="adactive_sas_saml2_bridge.processor.hosted_idp" class="AdactiveSas\Saml2BridgeBundle\SAML2\Provider\HostedIdentityProviderProcessor">
             <tag name="kernel.event_subscriber" />
             <argument type="service" id="adsum_user.saml.service_provider_repository" />
@@ -32,11 +36,12 @@
             <argument type="service" id="adactive_sas_saml2_bridge.http.binding_container" />
             <argument type="service" id="adactive_sas_saml2_bridge.state.handler" />
             <argument type="service" id="event_dispatcher" />
+            <argument type="service" id="adactive_sas_saml2_bridge.metadata.factory" />
         </service>
         <service id="adactive_sas_saml2_bridge.configuration.hosted_entities" class="AdactiveSas\Saml2BridgeBundle\Entity\HostedEntities" public="false">
             <argument type="service" id="router" />
             <argument type="service" id="request_stack" />
-            <argument type="collection">null</argument><!-- Replaced in AdactiveSasSaml2BridgeExtension based on configuration -->
+            <argument type="string">null</argument><!-- Replaced in AdactiveSasSaml2BridgeExtension based on configuration -->
             <argument type="collection">null</argument><!-- Replaced in AdactiveSasSaml2BridgeExtension based on configuration -->
         </service>
         <service id="adactive_sas_saml2_bridge.logout.handler" class="AdactiveSas\Saml2BridgeBundle\Security\SamlLogoutHandler">

@@ -9,14 +9,9 @@ use SAML2_Configuration_PrivateKey as PrivateKey;
 class HostedEntities
 {
     /**
-     * @var HostedServiceProvider
+     * @var string
      */
-    private $serviceProvider;
-
-    /**
-     * @var array
-     */
-    private $serviceProviderConfiguration;
+    private $metadataRouteConfiguration;
 
     /**
      * @var HostedIdentityProvider
@@ -35,41 +30,36 @@ class HostedEntities
 
     /**
      * @param RouterInterface $router
-     * @param RequestStack    $requestStack
-     * @param array           $serviceProviderConfiguration
-     * @param array           $identityProviderConfiguration
+     * @param RequestStack $requestStack
+     * @param null $metadataRouteConfiguration
+     * @param array $identityProviderConfiguration
      */
     public function __construct(
         RouterInterface $router,
         RequestStack $requestStack,
-        array $serviceProviderConfiguration = null,
+        $metadataRouteConfiguration = null,
         array $identityProviderConfiguration = null
-    ) {
-        $this->router                        = $router;
-        $this->requestStack                  = $requestStack;
-        $this->serviceProviderConfiguration  = $serviceProviderConfiguration;
+    )
+    {
+        $this->router = $router;
+        $this->requestStack = $requestStack;
+        $this->metadataRouteConfiguration = $metadataRouteConfiguration;
         $this->identityProviderConfiguration = $identityProviderConfiguration;
     }
 
     /**
-     * @return null|HostedServiceProvider
+     * @return string
      */
-    public function getServiceProvider()
+    public function getEntityId()
     {
-        if (!empty($this->serviceProvider)) {
-            return $this->serviceProvider;
-        }
+        return $this->generateUrl($this->metadataRouteConfiguration);
+    }
 
-        if (!$this->serviceProviderConfiguration['enabled']) {
-            return null;
-        }
-
-        $configuration = $this->createStandardEntityConfiguration($this->serviceProviderConfiguration);
-        $configuration['assertionConsumerUrl'] = $this->generateUrl(
-            $this->serviceProviderConfiguration['assertion_consumer_route']
-        );
-
-        return $this->serviceProvider = new HostedServiceProvider($configuration);
+    /**
+     * @return bool
+     */
+    public function hasIdentityProvider(){
+        return $this->getIdentityProvider() !== null;
     }
 
     /**
@@ -88,6 +78,9 @@ class HostedEntities
         $configuration = $this->createStandardEntityConfiguration($this->identityProviderConfiguration);
         $configuration['ssoUrl'] = $this->generateUrl(
             $this->identityProviderConfiguration['sso_route']
+        );
+        $configuration['slsUrl'] = $this->generateUrl(
+            $this->identityProviderConfiguration['sls_route']
         );
         $configuration['loginUrl'] = $this->generateUrl(
             $this->identityProviderConfiguration['login_route']
@@ -108,10 +101,10 @@ class HostedEntities
         $privateKey = new PrivateKey($entityConfiguration['private_key'], PrivateKey::NAME_DEFAULT);
 
         return [
-            'entityId'                   => $this->generateUrl($entityConfiguration['metadata_route']),
-            'certificateFile'            => $entityConfiguration['public_key'],
-            'privateKeys'                => [$privateKey],
-            'blacklistedAlgorithms'      => [],
+            'entityId' => $this->getEntityId(),
+            'certificateFile' => $entityConfiguration['public_key'],
+            'privateKeys' => [$privateKey],
+            'blacklistedAlgorithms' => [],
             'assertionEncryptionEnabled' => false
         ];
     }
@@ -122,7 +115,7 @@ class HostedEntities
      */
     private function generateUrl($routeDefinition)
     {
-        $route      = is_array($routeDefinition) ? $routeDefinition['route'] : $routeDefinition;
+        $route = is_array($routeDefinition) ? $routeDefinition['route'] : $routeDefinition;
         $parameters = is_array($routeDefinition) ? $routeDefinition['parameters'] : [];
 
         $context = $this->router->getContext();
