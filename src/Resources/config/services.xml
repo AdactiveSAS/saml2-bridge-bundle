@@ -1,0 +1,49 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <services>
+        <service id="adactive_sas_saml2_bridge.container" class="AdactiveSas\Saml2BridgeBundle\SAML2\BridgeContainer">
+            <argument type="service" id="logger" />
+        </service>
+        <service id="adactive_sas_saml2_bridge.state.handler" class="AdactiveSas\Saml2BridgeBundle\SAML2\State\SamlStateHandler">
+            <argument type="service" id="session" />
+            <argument type="service" id="security.token_storage" />
+            <argument type="service" id="security.authorization_checker" />
+            <tag name="kernel.event_subscriber" />
+        </service>
+        <service id="adactive_sas_saml2_bridge.http.redirect_binding" class="AdactiveSas\Saml2BridgeBundle\SAML2\Binding\HttpRedirectBinding">
+            <argument type="service" id="logger" />
+        </service>
+        <service id="adactive_sas_saml2_bridge.http.post_binding" class="AdactiveSas\Saml2BridgeBundle\SAML2\Binding\HttpPostBinding">
+            <argument type="service" id="form.factory" />
+            <argument type="service" id="templating" />
+        </service>
+        <service id="adactive_sas_saml2_bridge.http.binding_container" class="AdactiveSas\Saml2BridgeBundle\SAML2\Binding\HttpBindingContainer">
+            <argument type="service" id="adactive_sas_saml2_bridge.http.redirect_binding" />
+            <argument type="service" id="adactive_sas_saml2_bridge.http.post_binding" />
+        </service>
+        <service id="adactive_sas_saml2_bridge.processor.hosted_idp" class="AdactiveSas\Saml2BridgeBundle\SAML2\Provider\HostedIdentityProviderProcessor">
+            <tag name="kernel.event_subscriber" />
+            <argument type="service" id="adsum_user.saml.service_provider_repository" />
+            <argument type="service" id="adactive_sas_saml2_bridge.hosted.identity_provider" />
+            <argument type="service" id="adactive_sas_saml2_bridge.http.binding_container" />
+            <argument type="service" id="adactive_sas_saml2_bridge.state.handler" />
+            <argument type="service" id="event_dispatcher" />
+        </service>
+        <service id="adactive_sas_saml2_bridge.configuration.hosted_entities" class="AdactiveSas\Saml2BridgeBundle\Entity\HostedEntities" public="false">
+            <argument type="service" id="router" />
+            <argument type="service" id="request_stack" />
+            <argument type="collection">null</argument><!-- Replaced in AdactiveSasSaml2BridgeExtension based on configuration -->
+            <argument type="collection">null</argument><!-- Replaced in AdactiveSasSaml2BridgeExtension based on configuration -->
+        </service>
+        <service id="adactive_sas_saml2_bridge.logout.handler" class="AdactiveSas\Saml2BridgeBundle\Security\SamlLogoutHandler">
+            <argument type="service" id="event_dispatcher" />
+        </service>
+        <service id="adactive_sas_saml2_bridge.hosted.identity_provider" class="AdactiveSas\Saml2BridgeBundle\Entity\IdentityProvider">
+            <factory service="adactive_sas_saml2_bridge.configuration.hosted_entities" method="getIdentityProvider" />
+        </service>
+    </services>
+</container>
