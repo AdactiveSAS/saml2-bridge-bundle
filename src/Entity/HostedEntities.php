@@ -108,7 +108,7 @@ class HostedEntities
         $privateKey = new PrivateKey($entityConfiguration['private_key'], PrivateKey::NAME_DEFAULT);
 
         return [
-            'entityId'                   => $this->generateUrl($entityConfiguration['entity_id_route']),
+            'entityId'                   => $this->generateUrl($entityConfiguration['metadata_route']),
             'certificateFile'            => $entityConfiguration['public_key'],
             'privateKeys'                => [$privateKey],
             'blacklistedAlgorithms'      => [],
