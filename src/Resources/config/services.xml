@@ -27,7 +27,7 @@
         </service>
         <service id="adactive_sas_saml2_bridge.metadata.factory" class="AdactiveSas\Saml2BridgeBundle\SAML2\Metadata\MetadataFactory">
             <argument type="service" id="templating" />
-            <argument type="service" id="adactive_sas_saml2_bridge.hosted.identity_provider" />
+            <argument type="service" id="adactive_sas_saml2_bridge.configuration.hosted_entities" />
         </service>
         <service id="adactive_sas_saml2_bridge.processor.hosted_idp" class="AdactiveSas\Saml2BridgeBundle\SAML2\Provider\HostedIdentityProviderProcessor">
             <tag name="kernel.event_subscriber" />
