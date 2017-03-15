@@ -20,7 +20,7 @@
   },
   "autoload": {
     "psr-4": {
-      "AdactiveSas\\Saml2BridgeBundle": "src"
+      "AdactiveSas\\Saml2BridgeBundle\\": "src"
     }
   }
 }
