@@ -105,11 +105,7 @@ class SamlStateHandler implements EventSubscriberInterface
      */
     public function onKernelResponse(FilterResponseEvent $event){
         // Save into session
-        if($this->state !== null){
-            $this->session->set(self::SESSION_NAME_ATTRIBUTE, $this->state);
-        }else{
-            $this->session->remove(self::SESSION_NAME_ATTRIBUTE);
-        }
+        $this->session->set(self::SESSION_NAME_ATTRIBUTE, $this->state);
     }
 
     /**
@@ -333,15 +329,6 @@ class SamlStateHandler implements EventSubscriberInterface
         }
 
         $this->get()->setRequest(null)->setOriginalLogoutResponse(null);
-
-        return $this;
-    }
-
-    /**
-     * @return $this
-     */
-    public function remove(){
-        $this->state = null;
 
         return $this;
     }

@@ -434,7 +434,7 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
             $response = $this->stateHandler->get()->getOriginalLogoutResponse();
         }
 
-        $this->stateHandler->remove();
+        $this->stateHandler->resume();
 
         return $response;
     }
