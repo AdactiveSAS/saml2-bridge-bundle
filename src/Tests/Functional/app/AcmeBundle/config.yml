@@ -1,0 +1,16 @@
+imports:
+    - { resource: ./../config/framework.yml }
+    - { resource: ./../config/security.yml }
+
+adactive_sas_saml2_bridge:
+    hosted:
+        metadata_route: acme_saml_metadata
+        identity_provider:
+            enabled: true
+            service_provider_repository: acme.saml.service_provider_repository
+            sso_route: acme_saml_sso
+            sls_route: acme_saml_sls
+            login_route: fos_user_security_login
+            logout_route: fos_user_security_logout
+            public_key: '%kernel.root_dir%/../vendor/adactive-sas/saml2-bridge-bundle/src/Resources/keys/development_publickey.cer'
+            private_key: '%kernel.root_dir%/../vendor/adactive-sas/saml2-bridge-bundle/src/Resources/keys/development_privatekey.pem'
