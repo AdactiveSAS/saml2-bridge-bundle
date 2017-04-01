@@ -2,8 +2,12 @@
 
 namespace AdactiveSas\Saml2BridgeBundle\DependencyInjection;
 
+use AdactiveSas\Saml2BridgeBundle\Entity\HostedEntities;
+use AdactiveSas\Saml2BridgeBundle\SAML2\Provider\HostedIdentityProviderProcessor;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Config\FileLocator;
+use Symfony\Component\DependencyInjection\Definition;
+use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 use Symfony\Component\DependencyInjection\Loader;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
@@ -58,15 +62,16 @@ class AdactiveSasSaml2BridgeExtension extends Extension
             return;
         }
 
-        if (!is_string($identityProvider['service_provider_repository'])) {
-            throw new InvalidConfigurationException(
-                'adactive_sas_saml2_bridge.hosted.identity_provider.service_provider_repository configuration value should be a string'
-            );
-        }
-
-        $container->setParameter(
-            'adactive_sas_saml2_bridge.configuration.service_provider_repository.alias',
-            $identityProvider['service_provider_repository']
-        );
+        $container->setDefinition("adactive_sas_saml2_bridge.processor.hosted_idp", new Definition(
+            HostedIdentityProviderProcessor::class,
+            [
+                new Reference($identityProvider['service_provider_repository']),
+                new Reference("adactive_sas_saml2_bridge.hosted.identity_provider"),
+                new Reference("adactive_sas_saml2_bridge.http.binding_container"),
+                new Reference("adactive_sas_saml2_bridge.state.handler"),
+                new Reference("event_dispatcher"),
+                new Reference("adactive_sas_saml2_bridge.metadata.factory"),
+            ]
+        ));
     }
 }
