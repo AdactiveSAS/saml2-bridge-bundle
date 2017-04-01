@@ -18,6 +18,12 @@
     "symfony/symfony": "^2.7.0|^3.0.0",
     "symfony/workflow": "^3.0.0"
   },
+  "require-dev": {
+    "phpunit/phpunit": "^5.7.17",
+    "symfony/phpunit-bridge": "^2.8.0",
+    "liip/functional-test-bundle": "^1.7",
+    "twig/twig": "^2.0"
+  },
   "autoload": {
     "psr-4": {
       "AdactiveSas\\Saml2BridgeBundle\\": "src"
