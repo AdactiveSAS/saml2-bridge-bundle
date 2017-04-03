@@ -32,7 +32,7 @@ class AuthnResponseBuilder extends AbstractResponseBuilder
     public function getResponse()
     {
         $assertions = [];
-        foreach ($this->assertionBuilders as $assertionBuilder){
+        foreach ($this->assertionBuilders as $assertionBuilder) {
             $assertions[] = $assertionBuilder->getAssertion();
         }
 
@@ -42,21 +42,22 @@ class AuthnResponseBuilder extends AbstractResponseBuilder
     }
 
     /**
-     * @return void
+     * @return AssertionBuilder[]
      */
-    protected function createResponseInstance()
+    public function getAssertionBuilders()
     {
-        $this->response = new \SAML2_Response();
+        return $this->assertionBuilders;
     }
 
     /**
      * @param AssertionBuilder[] $assertionBuilders
      * @return $this
      */
-    public function setAssertionBuilders(array $assertionBuilders){
+    public function setAssertionBuilders(array $assertionBuilders)
+    {
         $this->assertionBuilders = [];
 
-        foreach ($assertionBuilders as $assertionBuilder){
+        foreach ($assertionBuilders as $assertionBuilder) {
             $this->addAssertionBuilder($assertionBuilder);
         }
 
@@ -67,16 +68,20 @@ class AuthnResponseBuilder extends AbstractResponseBuilder
      * @param AssertionBuilder $assertion
      * @return $this
      */
-    public function addAssertionBuilder(AssertionBuilder $assertion){
-        $this->assertionBuilders[] = $assertion;
+    public function addAssertionBuilder(AssertionBuilder $assertion)
+    {
+        if (!in_array($assertion, $this->assertionBuilders, true)) {
+            $this->assertionBuilders[] = $assertion;
+        }
 
         return $this;
     }
 
     /**
-     * @return AssertionBuilder[]
+     * @return void
      */
-    public function getAssertionBuilders(){
-        return $this->assertionBuilders;
+    protected function createResponseInstance()
+    {
+        $this->response = new \SAML2_Response();
     }
 }

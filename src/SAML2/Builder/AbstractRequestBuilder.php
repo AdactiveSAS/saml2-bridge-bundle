@@ -5,6 +5,8 @@ namespace AdactiveSas\Saml2BridgeBundle\SAML2\Builder;
 
 abstract class AbstractRequestBuilder
 {
+    private $issueInstant;
+
     /**
      * @return void
      */

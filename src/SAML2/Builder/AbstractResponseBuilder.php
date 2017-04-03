@@ -6,6 +6,11 @@ namespace AdactiveSas\Saml2BridgeBundle\SAML2\Builder;
 abstract class AbstractResponseBuilder
 {
     /**
+     * @var \DateTime
+     */
+    private $issueInstant;
+
+    /**
      * @return void
      */
     abstract protected function createResponseInstance();
