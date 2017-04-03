@@ -71,10 +71,7 @@ final class ReceivedMessageQueryString
         $parameters = [];
         foreach ($queryParameters as $queryParameter) {
             if (!(strpos($queryParameter, '=') > 0)) {
-                throw new InvalidReceivedMessageQueryStringException(sprintf(
-                    'Could not parse "%s": it does not contain a valid key-value pair',
-                    $queryParameter
-                ));
+                continue;
             }
 
             list($key, $value) = explode('=', $queryParameter, 2);
@@ -91,7 +88,7 @@ final class ReceivedMessageQueryString
                 ));
             }
 
-            $parameters[$key] = $value;
+            $parameters[$key] = urldecode($value);
         }
 
         $isRequestMessage = array_key_exists(self::PARAMETER_REQUEST, $parameters);
@@ -117,7 +114,7 @@ final class ReceivedMessageQueryString
 
         $encodedMessage = $isRequestMessage ? $parameters[self::PARAMETER_REQUEST] : $parameters[self::PARAMETER_RESPONSE];
 
-        if (base64_decode(urldecode($encodedMessage), true) === false) {
+        if (base64_decode($encodedMessage, true) === false) {
             throw new InvalidRequestException('Failed decoding SAML message, did not receive a valid base64 string');
         }
 
@@ -135,7 +132,7 @@ final class ReceivedMessageQueryString
                 ));
             }
 
-            if (base64_decode(urldecode($parameters[self::PARAMETER_SIGNATURE]), true) === false) {
+            if (base64_decode($parameters[self::PARAMETER_SIGNATURE], true) === false) {
                 throw new InvalidReceivedMessageQueryStringException(sprintf(
                     'Invalid ReceivedMessage query string ("%s"): signature is not base64 encoded correctly',
                     $queryWithoutSeparator
@@ -193,7 +190,7 @@ final class ReceivedMessageQueryString
      */
     public function getDecodedSamlRequest()
     {
-        $samlRequest = base64_decode(urldecode($this->samlMessage), true);
+        $samlRequest = base64_decode($this->samlMessage, true);
 
         // Catch any errors gzinflate triggers
         $errorNo = $errorMessage = null;
@@ -224,7 +221,7 @@ final class ReceivedMessageQueryString
             throw new RuntimeException('Cannot decode signature: SAMLRequest is not signed');
         }
 
-        return base64_decode(urldecode($this->signature), true);
+        return base64_decode($this->signature, true);
     }
 
     /**

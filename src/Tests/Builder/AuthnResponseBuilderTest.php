@@ -9,13 +9,14 @@ use AdactiveSas\Saml2BridgeBundle\SAML2\Builder\AuthnResponseBuilder;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 
+/**
+ * @runTestsInSeparateProcesses
+ */
 class AuthnResponseBuilderTest extends TestCase
 {
-    public function setUp()
+    public static function setUpBeforeClass()
     {
-        parent::setUp();
-        $bridgeContainer = new BridgeContainer(new NullLogger());
-        \SAML2_Compat_ContainerSingleton::setContainer($bridgeContainer);
+        \SAML2_Compat_ContainerSingleton::setContainer(new \SAML2_Compat_MockContainer());
     }
 
     public function testConstructorWithDefaultValue()

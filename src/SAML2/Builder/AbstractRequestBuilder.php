@@ -5,6 +5,8 @@ namespace AdactiveSas\Saml2BridgeBundle\SAML2\Builder;
 
 abstract class AbstractRequestBuilder
 {
+    private $issueInstant;
+
     /**
      * @return void
      */
@@ -23,7 +25,7 @@ abstract class AbstractRequestBuilder
     {
         $this->createRequestInstance();
 
-        $this->issueInstant = $issueInstant === null ? new \DateTime('now', new \DateTimeZone(\DateTimeZone::UTC)): $issueInstant;
+        $this->issueInstant = $issueInstant === null ? new \DateTime('now', new \DateTimeZone('UTC')): $issueInstant;
 
         $this->getRequest()->setIssueInstant($this->issueInstant->getTimestamp());
     }
