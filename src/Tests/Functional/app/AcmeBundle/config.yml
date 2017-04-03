@@ -12,5 +12,5 @@ adactive_sas_saml2_bridge:
             sls_route: acme_saml_sls
             login_route: fos_user_security_login
             logout_route: fos_user_security_logout
-            public_key: '%kernel.root_dir%/../vendor/adactive-sas/saml2-bridge-bundle/src/Resources/keys/development_publickey.cer'
-            private_key: '%kernel.root_dir%/../vendor/adactive-sas/saml2-bridge-bundle/src/Resources/keys/development_privatekey.pem'
+            public_key: '%kernel.root_dir%/AcmeBundle/certificates/idp.crt'
+            private_key: '%kernel.root_dir%/AcmeBundle/certificates/idp.pem'

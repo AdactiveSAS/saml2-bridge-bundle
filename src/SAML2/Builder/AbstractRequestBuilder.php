@@ -23,7 +23,7 @@ abstract class AbstractRequestBuilder
     {
         $this->createRequestInstance();
 
-        $this->issueInstant = $issueInstant === null ? new \DateTime('now', new \DateTimeZone('UTC')): $issueInstant;
+        $this->issueInstant = $issueInstant === null ? new \DateTime('now', new \DateTimeZone(\DateTimeZone::UTC)): $issueInstant;
 
         $this->getRequest()->setIssueInstant($this->issueInstant->getTimestamp());
     }
