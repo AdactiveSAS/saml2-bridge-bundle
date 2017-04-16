@@ -253,7 +253,11 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
         $inputBinding = $this->bindingContainer->get($this->identityProvider->getSsoBinding());
 
         try {
-            $authRequest = $inputBinding->receiveSignedAuthnRequest($httpRequest);
+            if($this->identityProvider->mustSignedRequests()){
+                $authRequest = $inputBinding->receiveSignedAuthnRequest($httpRequest);
+            }else{
+                $authRequest = $inputBinding->receiveUnsignedAuthnRequest($httpRequest);
+            }
             $this->validateRequest($authRequest);
         } catch (\Throwable $e) {
             // handle error, apparently the request cannot be processed :(
@@ -275,7 +279,11 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
 
             $authnResponse = $this->buildAuthnFailedResponse($authRequest, $e->getSamlStatusCode());
 
-            return $outBinding->getSignedResponse($authnResponse);
+            if($this->identityProvider->mustSignedResponses()){
+                return $outBinding->getSignedResponse($authnResponse);
+            }else{
+                return $outBinding->getUnsignedResponse($authnResponse);
+            }
         }
 
         if ($needLogin) {
@@ -319,7 +327,12 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
 
         $this->stateHandler->apply(SamlStateHandler::TRANSITION_SSO_RESPOND);
 
-        $response = $outBinding->getSignedResponse($authnResponse);
+        if($this->identityProvider->mustSignedResponses()){
+            $response = $outBinding->getSignedResponse($authnResponse);
+        }else{
+            $response = $outBinding->getUnsignedResponse($authnResponse);
+        }
+
 
         $this->stateHandler->resume();
 
@@ -335,7 +348,11 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
         $inputBinding = $this->bindingContainer->get($this->identityProvider->getSlsBinding());
 
         try {
-            $logoutMessage = $inputBinding->receiveSignedMessage($httpRequest);
+            if($this->identityProvider->mustSignedRequests()){
+                $logoutMessage = $inputBinding->receiveSignedMessage($httpRequest);
+            }else{
+                $logoutMessage = $inputBinding->receiveUnsignedMessage($httpRequest);
+            }
             if ($logoutMessage instanceof \SAML2_LogoutRequest){
                 $this->validateRequest($logoutMessage);
             }
@@ -401,7 +418,11 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
 
             $outBinding = $this->bindingContainer->get($sp->getSingleLogoutBinding());
 
-            $response = $outBinding->getSignedRequest($logoutRequest);
+            if($this->identityProvider->mustSignedResponses()){
+                $response = $outBinding->getSignedRequest($logoutRequest);
+            }else{
+                $response = $outBinding->getUnsignedRequest($logoutRequest);
+            }
 
             return $response;
         }
@@ -416,7 +437,11 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
             $sp = $this->getServiceProvider($logoutRequest->getIssuer());
             $outBinding = $this->bindingContainer->get($sp->getSingleLogoutBinding());
 
-            $response = $outBinding->getSignedResponse($logoutResponse);
+            if($this->identityProvider->mustSignedResponses()){
+                $response = $outBinding->getSignedResponse($logoutResponse);
+            }else{
+                $response = $outBinding->getUnsignedResponse($logoutResponse);
+            }
 
             $originalLogoutResponse = $this->stateHandler->get()->getOriginalLogoutResponse();
 
@@ -591,6 +616,10 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
     {
         if (!$this->serviceProviderRepository->hasServiceProvider($request->getIssuer())) {
             throw new UnknownServiceProviderException($request->getIssuer());
+        }
+
+        if(!$this->identityProvider->mustSignedRequests()){
+            return;
         }
 
         $serviceProvider = $this->getServiceProvider($request->getIssuer());

@@ -88,6 +88,8 @@ class HostedEntities
         $configuration['logoutUrl'] = $this->generateUrl(
             $this->identityProviderConfiguration['logout_route']
         );
+        $configuration["must_signed_requests"] = $this->identityProviderConfiguration["must_signed_requests"];
+        $configuration["must_signed_responses"] = $this->identityProviderConfiguration["must_signed_responses"];
 
         return $this->identityProvider = new HostedIdentityProvider($configuration);
     }
