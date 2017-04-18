@@ -11,6 +11,11 @@ abstract class AbstractResponseBuilder
     private $issueInstant;
 
     /**
+     * @var \XMLSecurityKey|null
+     */
+    private $signatureKey;
+
+    /**
      * @return void
      */
     abstract protected function createResponseInstance();
@@ -90,13 +95,20 @@ abstract class AbstractResponseBuilder
     }
 
     /**
-     * @param \XMLSecurityKey $key
+     * @param \XMLSecurityKey|null $key
      * @return $this
      */
-    public function setSignatureKey(\XMLSecurityKey $key){
-        $this->getResponse()->setSignatureKey($key);
+    public function setSignatureKey(\XMLSecurityKey $key = null){
+        $this->signatureKey = $key;
 
         return $this;
+    }
+
+    /**
+     * @return \XMLSecurityKey|null
+     */
+    public function getSignatureKey(){
+        return $this->signatureKey;
     }
 
     /**

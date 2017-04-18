@@ -32,8 +32,19 @@ class AuthnResponseBuilder extends AbstractResponseBuilder
     public function getResponse()
     {
         $assertions = [];
+        $key = $this->getSignatureKey();
         foreach ($this->assertionBuilders as $assertionBuilder) {
-            $assertions[] = $assertionBuilder->getAssertion();
+            $assertion = $assertionBuilder->getAssertion();
+
+            if(null !== $key){
+                $assertion->setSignatureKey($key);
+            }
+
+            $assertions[] = $assertion;
+        }
+
+        if(null !== $key){
+            $this->response->setSignatureKey($key);
         }
 
         $this->response->setAssertions($assertions);
