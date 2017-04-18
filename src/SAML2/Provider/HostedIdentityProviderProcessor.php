@@ -253,7 +253,7 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
         $inputBinding = $this->bindingContainer->get($this->identityProvider->getSsoBinding());
 
         try {
-            if($this->identityProvider->mustSignedRequests()){
+            if($this->identityProvider->wantSignedAuthnRequest()){
                 $authRequest = $inputBinding->receiveSignedAuthnRequest($httpRequest);
             }else{
                 $authRequest = $inputBinding->receiveUnsignedAuthnRequest($httpRequest);
@@ -279,7 +279,7 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
 
             $authnResponse = $this->buildAuthnFailedResponse($authRequest, $e->getSamlStatusCode());
 
-            if($this->identityProvider->mustSignedResponses()){
+            if($sp->wantSignedAuthnResponse()){
                 return $outBinding->getSignedResponse($authnResponse);
             }else{
                 return $outBinding->getUnsignedResponse($authnResponse);
@@ -327,7 +327,7 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
 
         $this->stateHandler->apply(SamlStateHandler::TRANSITION_SSO_RESPOND);
 
-        if($this->identityProvider->mustSignedResponses()){
+        if($sp->wantSignedAuthnResponse()){
             $response = $outBinding->getSignedResponse($authnResponse);
         }else{
             $response = $outBinding->getUnsignedResponse($authnResponse);
@@ -348,7 +348,7 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
         $inputBinding = $this->bindingContainer->get($this->identityProvider->getSlsBinding());
 
         try {
-            if($this->identityProvider->mustSignedRequests()){
+            if($this->identityProvider->wantSignedLogoutRequest()){
                 $logoutMessage = $inputBinding->receiveSignedMessage($httpRequest);
             }else{
                 $logoutMessage = $inputBinding->receiveUnsignedMessage($httpRequest);
@@ -418,7 +418,7 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
 
             $outBinding = $this->bindingContainer->get($sp->getSingleLogoutBinding());
 
-            if($this->identityProvider->mustSignedResponses()){
+            if($sp->wantSignedLogoutRequest()){
                 $response = $outBinding->getSignedRequest($logoutRequest);
             }else{
                 $response = $outBinding->getUnsignedRequest($logoutRequest);
@@ -437,7 +437,7 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
             $sp = $this->getServiceProvider($logoutRequest->getIssuer());
             $outBinding = $this->bindingContainer->get($sp->getSingleLogoutBinding());
 
-            if($this->identityProvider->mustSignedResponses()){
+            if($sp->wantSignedLogoutResponse()){
                 $response = $outBinding->getSignedResponse($logoutResponse);
             }else{
                 $response = $outBinding->getUnsignedResponse($logoutResponse);
@@ -618,7 +618,7 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
             throw new UnknownServiceProviderException($request->getIssuer());
         }
 
-        if(!$this->identityProvider->mustSignedRequests()){
+        if(!$this->identityProvider->wantSignedAuthnRequest()){
             return;
         }
 
