@@ -16,12 +16,18 @@ class AuthnResponseBuilder extends AbstractResponseBuilder
     protected $assertionBuilders;
 
     /**
+     * @var bool
+     */
+    protected $wantSignedAssertions;
+
+    /**
      * AuthnResponseBuilder constructor.
      * @param \DateTime|null $issueInstant
      */
     public function __construct(\DateTime $issueInstant = null)
     {
         $this->assertionBuilders = [];
+        $this->wantSignedAssertions = false;
 
         parent::__construct($issueInstant);
     }
@@ -36,7 +42,7 @@ class AuthnResponseBuilder extends AbstractResponseBuilder
         foreach ($this->assertionBuilders as $assertionBuilder) {
             $assertion = $assertionBuilder->getAssertion();
 
-            if(null !== $key){
+            if($this->wantSignedAssertions()){
                 $assertion->setSignatureKey($key);
             }
 
@@ -84,6 +90,23 @@ class AuthnResponseBuilder extends AbstractResponseBuilder
         if (!in_array($assertion, $this->assertionBuilders, true)) {
             $this->assertionBuilders[] = $assertion;
         }
+
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function wantSignedAssertions(){
+        return $this->wantSignedAssertions;
+    }
+
+    /**
+     * @param bool $value
+     * @return $this
+     */
+    public function setWantSignedAssertions($value){
+        $this->wantSignedAssertions = $value;
 
         return $this;
     }

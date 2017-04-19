@@ -521,11 +521,9 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
             ->setRelayState($authnRequest->getRelayState())
             ->setDestination($serviceProvider->getAssertionConsumerUrl())
             ->addAssertionBuilder($assertionBuilder)
-            ->setInResponseTo($authnRequest->getId());
-
-        if($serviceProvider->wantSignedAssertions()){
-            $authnResponseBuilder->setSignatureKey($this->getIdentityProviderXmlPrivateKey());
-        }
+            ->setInResponseTo($authnRequest->getId())
+            ->setWantSignedAssertions($serviceProvider->wantSignedAssertions())
+            ->setSignatureKey($this->getIdentityProviderXmlPrivateKey());
 
         $event = new GetAuthnResponseEvent($serviceProvider, $this->identityProvider, $this->stateHandler, $authnResponseBuilder);
 
