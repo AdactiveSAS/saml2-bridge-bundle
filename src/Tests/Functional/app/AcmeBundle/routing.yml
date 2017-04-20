@@ -1,13 +1,13 @@
 acme_saml_sso:
-    path: "saml/sso"
+    path: "saml/sso/"
     defaults: { _controller: AcmeBundle:Saml:singleSignOn }
 
 acme_saml_sls:
-    path: "saml/sls"
+    path: "saml/sls/"
     defaults: { _controller: AcmeBundle:Saml:singleLogout }
 
 acme_saml_metadata:
-    path: "saml/metadata"
+    path: "saml/metadata/"
     defaults: { _controller: AcmeBundle:Saml:metadata, _format: "xml" }
 
 login:

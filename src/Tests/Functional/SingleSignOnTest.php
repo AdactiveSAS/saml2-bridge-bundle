@@ -17,8 +17,9 @@ class SingleSignOnTest extends WebTestCase
         $client = $this->createAuthenticatedClient("moroine");
 
         $client->request("GET", $this->getAuthnRequestUri());
-
         $this->assertEquals(302, $client->getResponse()->getStatusCode());
+
+        $this->markTestIncomplete();
     }
 
     protected function createAuthenticatedClient($username)

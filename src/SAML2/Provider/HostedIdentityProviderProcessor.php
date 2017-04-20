@@ -35,6 +35,7 @@ use Symfony\Component\Security\Core\AuthenticationEvents;
 use Symfony\Component\Security\Core\Event\AuthenticationEvent as CoreAuthenticationEvent;
 use Symfony\Component\Security\Core\Event\AuthenticationFailureEvent as CoreAuthenticationFailureEvent;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Security\Http\SecurityEvents;
 
 class HostedIdentityProviderProcessor implements EventSubscriberInterface
 {
