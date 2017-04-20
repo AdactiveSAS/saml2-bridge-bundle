@@ -18,8 +18,6 @@ class SingleSignOnTest extends WebTestCase
 
         $client->request("GET", $this->getAuthnRequestUri());
 
-//        var_dump($client->getCrawler()->filter("title")->text());
-        var_dump($client->getCrawler()->html());
         $this->assertEquals(302, $client->getResponse()->getStatusCode());
     }
 
