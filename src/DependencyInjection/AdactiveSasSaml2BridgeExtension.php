@@ -30,6 +30,8 @@ class AdactiveSasSaml2BridgeExtension extends Extension
         $loader = new Loader\XmlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('services.xml');
 
+        var_dump($config);
+
         $this->parseHostedConfiguration($config['hosted'], $container);
     }
 

@@ -3,6 +3,8 @@
 namespace AdactiveSas\Saml2BridgeBundle\Form;
 
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -16,13 +18,13 @@ class SAML2ResponseForm extends AbstractType
     {
         $builder
             ->setAction($options["destination"])
-            ->add("SAMLResponse", "hidden");
+            ->add("SAMLResponse", HiddenType::class);
 
         if ($options["has_relay_state"]) {
-            $builder->add("RelayState", "hidden");
+            $builder->add("RelayState", HiddenType::class);
         }
 
-        $builder->add('submit', 'submit');
+        $builder->add('submit', SubmitType::class);
     }
 
     /**
