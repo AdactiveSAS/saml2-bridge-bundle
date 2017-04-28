@@ -67,6 +67,14 @@ class AuthnResponseBuilder extends AbstractResponseBuilder
     }
 
     /**
+     * @return AssertionBuilder
+     */
+    public function getDefaultAssertionBuilder()
+    {
+        return count($this->assertionBuilders) === 0 ? null : $this->assertionBuilders[0];
+    }
+
+    /**
      * @param AssertionBuilder[] $assertionBuilders
      * @return $this
      */

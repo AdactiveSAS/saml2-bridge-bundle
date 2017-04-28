@@ -85,7 +85,29 @@ class HttpRedirectBinding implements HttpBindingInterface
      */
     public function getUnsignedResponse(\SAML2_StatusResponse $response)
     {
-        throw new UnsupportedBindingException("Unsupported binding: unsigned REDIRECT Response is not supported at the moment");
+        $destination = $response->getDestination();
+        if($destination === null){
+            throw new LogicException('Invalid destination');
+        }
+
+        $responseAsXml = $response->toUnsignedXML()->ownerDocument->saveXML();
+        $encodedResponse = base64_encode(gzdeflate($responseAsXml));
+
+        /* Build the query string. */
+
+        $msg = 'SAMLResponse=' . urlencode($encodedResponse);
+
+        if ($response->getRelayState() !== NULL) {
+            $msg .= '&RelayState=' . urlencode($response->getRelayState());
+        }
+
+        if (strpos($destination, '?') === FALSE) {
+            $destination .= '?' . $msg;
+        } else {
+            $destination .= '&' . $msg;
+        }
+
+        return new RedirectResponse($destination);
     }
 
     /**
