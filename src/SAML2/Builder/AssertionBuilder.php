@@ -64,6 +64,10 @@ class AssertionBuilder
 
         $this->assertion->setNotOnOrAfter($endTime->getTimestamp());
 
+        $confirmation = $this->assertion->getSubjectConfirmation()[0];
+        $confirmation->SubjectConfirmationData->NotOnOrAfter = $endTime->getTimestamp();
+        $this->assertion->setSubjectConfirmation([$confirmation]);
+
         return $this;
     }
 
