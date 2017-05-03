@@ -89,6 +89,9 @@ class HostedEntities
             $this->identityProviderConfiguration['logout_route']
         );
 
+        $configuration["wantSignedAuthnRequest"] = $this->identityProviderConfiguration["signing"]["authn_request"];
+        $configuration["wantSignedLogoutRequest"] = $this->identityProviderConfiguration["signing"]["logout_request"];
+
         return $this->identityProvider = new HostedIdentityProvider($configuration);
     }
 

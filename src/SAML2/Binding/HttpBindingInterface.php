@@ -45,6 +45,18 @@ interface HttpBindingInterface
 
     /**
      * @param Request $request
+     * @return \SAML2_AuthnRequest
+     */
+    public function receiveUnsignedAuthnRequest(Request $request);
+
+    /**
+     * @param Request $request
+     * @return \SAML2_LogoutRequest
+     */
+    public function receiveUnsignedLogoutRequest(Request $request);
+
+    /**
+     * @param Request $request
      * @return \SAML2_Message
      */
     public function receiveSignedMessage(Request $request);

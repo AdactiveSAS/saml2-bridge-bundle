@@ -166,25 +166,29 @@ class AuthnResponseBuilderTest extends TestCase
         self::assertSame([], $authResponse->getAssertionBuilders());
     }
 
-    public function testGetResponseWitAssertionBuilders()
+    public function testGetResponseWitAssertionBuildersWithoutSignatureKey()
     {
         $authResponse = new AuthnResponseBuilder();
 
         $assertionBuilder1 = $this->createMock(AssertionBuilder::class);
 
-        $assertion1 = "assertion1";
+        $assertion1 = $this->createMock(\SAML2_Assertion::class);
         $assertionBuilder1->expects($this->once())
             ->method("getAssertion")
             ->willReturn($assertion1);
+        $assertion1->expects($this->never())
+            ->method("setSignatureKey");
 
         /** @var AssertionBuilder $assertionBuilder2 */
         $assertionBuilder2 = $this->createMock(AssertionBuilder::class);
 
-        $assertion2 = "assertion2";
-
+        $assertion2 = $this->createMock(\SAML2_Assertion::class);
         $assertionBuilder2->expects($this->once())
         ->method("getAssertion")
         ->willReturn($assertion2);
+
+        $assertion2->expects($this->never())
+            ->method("setSignatureKey");
 
         $response = $authResponse->getResponse();
         self::assertInstanceOf(\SAML2_Response::class, $response);
@@ -192,8 +196,52 @@ class AuthnResponseBuilderTest extends TestCase
 
         $authResponse->setAssertionBuilders([$assertionBuilder1, $assertionBuilder2]);
 
+
         $response = $authResponse->getResponse();
         self::assertInstanceOf(\SAML2_Response::class, $response);
-        self::assertEquals([$assertion1, $assertion2], $response->getAssertions());
+        self::assertCount(2, $response->getAssertions());
+        self::assertSame($assertion1, $response->getAssertions()[0]);
+        self::assertSame($assertion2, $response->getAssertions()[1]);
+    }
+
+    public function testGetResponseWitAssertionBuildersWithSignatureKey()
+    {
+        $authResponse = new AuthnResponseBuilder();
+
+        $assertionBuilder1 = $this->createMock(AssertionBuilder::class);
+
+        $key = $this->createMock(\XMLSecurityKey::class);
+
+        $assertion1 = $this->createMock(\SAML2_Assertion::class);
+        $assertionBuilder1->expects($this->once())
+            ->method("getAssertion")
+            ->willReturn($assertion1);
+        $assertion1
+            ->expects($this->once())
+            ->method("setSignatureKey")
+            ->with($key);
+
+        /** @var AssertionBuilder $assertionBuilder2 */
+        $assertionBuilder2 = $this->createMock(AssertionBuilder::class);
+
+        $assertion2 = $this->createMock(\SAML2_Assertion::class);
+        $assertionBuilder2->expects($this->once())
+        ->method("getAssertion")
+        ->willReturn($assertion2);
+
+        $assertion2
+            ->expects($this->once())
+            ->method("setSignatureKey")
+            ->with($key);
+
+        $authResponse->setAssertionBuilders([$assertionBuilder1, $assertionBuilder2])
+            ->setSignatureKey($key)
+            ->setWantSignedAssertions(true);
+
+        $response = $authResponse->getResponse();
+        self::assertInstanceOf(\SAML2_Response::class, $response);
+        self::assertCount(2, $response->getAssertions());
+        self::assertSame($assertion1, $response->getAssertions()[0]);
+        self::assertSame($assertion2, $response->getAssertions()[1]);
     }
 }

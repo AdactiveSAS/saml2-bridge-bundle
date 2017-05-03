@@ -95,6 +95,24 @@ class HttpPostBinding implements HttpBindingInterface
 
     /**
      * @param Request $request
+     * @return \SAML2_AuthnRequest
+     */
+    public function receiveUnsignedAuthnRequest(Request $request)
+    {
+        throw new UnsupportedBindingException("Unsupported binding: unsigned POST AuthnRequest is not supported at the moment");
+    }
+
+    /**
+     * @param Request $request
+     * @return \SAML2_LogoutRequest
+     */
+    public function receiveUnsignedLogoutRequest(Request $request)
+    {
+        throw new UnsupportedBindingException("Unsupported binding: unsigned POST LogoutRequest is not supported at the moment");
+    }
+
+    /**
+     * @param Request $request
      * @return \SAML2_Message
      */
     public function receiveSignedMessage(Request $request)

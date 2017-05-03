@@ -15,6 +15,11 @@ class LogoutResponseBuilder extends AbstractResponseBuilder
      */
     public function getResponse()
     {
+        $key = $this->getSignatureKey();
+        if($key !== null){
+            $this->response->setSignatureKey($key);
+        }
+
         return $this->response;
     }
 
