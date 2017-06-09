@@ -2,7 +2,7 @@
 
 namespace AdactiveSas\Saml2BridgeBundle\SAML2\Provider;
 
-use AdactiveSas\Saml2BridgeBundle\Entity\HostedIdentityProvider;
+use AdactiveSas\Saml2BridgeBundle\Entity\HostedEntities;
 use AdactiveSas\Saml2BridgeBundle\Entity\ServiceProvider;
 use AdactiveSas\Saml2BridgeBundle\Entity\ServiceProviderRepository;
 use AdactiveSas\Saml2BridgeBundle\Exception\InvalidArgumentException;
@@ -23,6 +23,7 @@ use AdactiveSas\Saml2BridgeBundle\SAML2\State\SamlState;
 use AdactiveSas\Saml2BridgeBundle\SAML2\State\SamlStateHandler;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
+use Sensio\Bundle\FrameworkExtraBundle\EventListener\ParamConverterListener;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -54,9 +55,9 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
     protected $publicKeyLoader;
 
     /**
-     * @var HostedIdentityProvider
+     * @var HostedEntities
      */
-    protected $identityProvider;
+    protected $hostedEntities;
 
     /**
      * @var Session
@@ -86,14 +87,14 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
     /**
      * HostedIdentityProvider constructor.
      * @param ServiceProviderRepository $serviceProviderRepository
-     * @param HostedIdentityProvider $identityProvider
+     * @param HostedEntities HostedEntities
      * @param HttpBindingContainer $bindingContainer
      * @param SamlStateHandler $stateHandler
      * @param EventDispatcherInterface $eventDispatcher
      */
     public function __construct(
         ServiceProviderRepository $serviceProviderRepository,
-        HostedIdentityProvider $identityProvider,
+        HostedEntities $hostedEntities,
         HttpBindingContainer $bindingContainer,
         SamlStateHandler $stateHandler,
         EventDispatcherInterface $eventDispatcher,
@@ -102,7 +103,7 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
     {
         $this->serviceProviderRepository = $serviceProviderRepository;
         $this->publicKeyLoader = new \SAML2_Certificate_KeyLoader();
-        $this->identityProvider = $identityProvider;
+        $this->hostedEntities = $hostedEntities;
         $this->bindingContainer = $bindingContainer;
         $this->stateHandler = $stateHandler;
         $this->eventDispatcher = $eventDispatcher;
@@ -156,6 +157,10 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
     public function onKernelResponse(FilterResponseEvent $event)
     {
         if (!$event->isMasterRequest()) {
+            return;
+        }
+
+        if ($event->getResponse()->isServerError() || $event->getResponse()->isClientError()) {
             return;
         }
 
@@ -250,7 +255,7 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
 
         $this->logger->notice('Received AuthnRequest, started processing');
 
-        $inputBinding = $this->bindingContainer->get($this->identityProvider->getSsoBinding());
+        $inputBinding = $this->bindingContainer->get($this->hostedEntities->getIdentityProvider()->getSsoBinding());
 
         try {
             $authRequest = $inputBinding->receiveSignedAuthnRequest($httpRequest);
@@ -283,11 +288,11 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
 
             $this->logger->notice(
                 sprintf('Login is required, redirecting to login page %s',
-                    $this->identityProvider->getLoginUrl()
+                    $this->hostedEntities->getIdentityProvider()->getLoginUrl()
                 )
             );
 
-            return new RedirectResponse($this->identityProvider->getLoginUrl());
+            return new RedirectResponse($this->hostedEntities->getIdentityProvider()->getLoginUrl());
         }
 
         return $this->continueSingleSignOn();
@@ -313,7 +318,7 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
 
             $this->stateHandler->get()->addServiceProviderId($sp->getEntityId());
 
-            $event = new AuthenticationSuccessEvent($sp, $this->identityProvider, $this->stateHandler);
+            $event = new AuthenticationSuccessEvent($sp, $this->hostedEntities->getIdentityProvider(), $this->stateHandler);
             $this->eventDispatcher->dispatch(Saml2Events::SSO_AUTHN_SUCCESS, $event);
         }
 
@@ -332,7 +337,7 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
      */
     public function processSingleLogoutService(Request $httpRequest)
     {
-        $inputBinding = $this->bindingContainer->get($this->identityProvider->getSlsBinding());
+        $inputBinding = $this->bindingContainer->get($this->hostedEntities->getIdentityProvider()->getSlsBinding());
 
         try {
             $logoutMessage = $inputBinding->receiveSignedMessage($httpRequest);
@@ -384,11 +389,11 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
 
             $this->logger->notice(
                 sprintf('Logout from studio, redirecting to logout page %s',
-                    $this->identityProvider->getLogoutUrl()
+                    $this->hostedEntities->getIdentityProvider()->getLogoutUrl()
                 )
             );
 
-            return new RedirectResponse($this->identityProvider->getLogoutUrl());
+            return new RedirectResponse($this->hostedEntities->getIdentityProvider()->getLogoutUrl());
         }
 
         $state = $this->stateHandler->get();
@@ -396,7 +401,7 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
             $this->stateHandler->apply(SamlStateHandler::TRANSITION_SLS_START_PROPAGATE);
 
             // Dispatch logout to service providers
-            $sp = $this->serviceProviderRepository->getServiceProvider($state->popServiceProviderIds());
+            $sp = $this->serviceProviderRepository->getServiceProvider($state->getRequest()->getIssuer());
             $logoutRequest = $this->buildLogoutRequest($sp);
 
             $outBinding = $this->bindingContainer->get($sp->getSingleLogoutBinding());
@@ -487,19 +492,26 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
         $assertionBuilder
             ->setNotOnOrAfter(new \DateInterval('PT5M'))
             ->setSessionNotOnOrAfter(new \DateInterval('P1D'))
-            ->setIssuer($this->identityProvider->getEntityId())
-            ->setNameId($this->stateHandler->get()->getUserName(), \SAML2_Const::NAMEFORMAT_BASIC);
+            ->setIssuer($this->hostedEntities->getIdentityProvider()->getEntityId())
+            ->setNameId($this->stateHandler->get()->getUserName(), $serviceProvider->getNameIdFormat())
+            ->setSubjectConfirmation(\SAML2_Const::CM_BEARER, $authnRequest->getId(), new \DateInterval('PT5M'), $serviceProvider->getAssertionConsumerUrl())
+            ->setAuthnContext('urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport');
+
+        $user = $this->stateHandler->getUser();
+        foreach ($serviceProvider->getAttributes() as $attributeName => $attributeCallback) {
+            $assertionBuilder->setAttribute($attributeName, $attributeCallback($user));
+        }
 
         $authnResponseBuilder
             ->setStatus(\SAML2_Const::STATUS_SUCCESS)
-            ->setIssuer($this->identityProvider->getEntityId())
+            ->setIssuer($this->hostedEntities->getIdentityProvider()->getEntityId())
             ->setRelayState($authnRequest->getRelayState())
             ->setDestination($serviceProvider->getAssertionConsumerUrl())
             ->addAssertionBuilder($assertionBuilder)
             ->setInResponseTo($authnRequest->getId())
             ->setSignatureKey($this->getIdentityProviderXmlPrivateKey());
 
-        $event = new GetAuthnResponseEvent($serviceProvider, $this->identityProvider, $this->stateHandler, $authnResponseBuilder);
+        $event = new GetAuthnResponseEvent($serviceProvider, $this->hostedEntities->getIdentityProvider(), $this->stateHandler, $authnResponseBuilder);
 
         $this->eventDispatcher->dispatch(Saml2Events::SSO_AUTHN_GET_RESPONSE, $event);
 
@@ -518,7 +530,7 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
 
         return $authnResponseBuilder
             ->setStatus($samlStatus)
-            ->setIssuer($this->identityProvider->getEntityId())
+            ->setIssuer($this->hostedEntities->getIdentityProvider()->getEntityId())
             ->setRelayState($authnRequest->getRelayState())
             ->setDestination($serviceProvider->getAssertionConsumerUrl())
             ->setInResponseTo($authnRequest->getId())
@@ -536,7 +548,7 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
 
         return $logoutRequestBuilder
             ->setNameId($this->stateHandler->get()->getUserName(), \SAML2_Const::NAMEFORMAT_BASIC)
-            ->setIssuer($this->identityProvider->getEntityId())
+            ->setIssuer($this->hostedEntities->getIdentityProvider()->getEntityId())
             ->setDestination($serviceProvider->getSingleLogoutUrl())
             ->setSignatureKey($this->getIdentityProviderXmlPrivateKey())
             ->getRequest();
@@ -555,7 +567,7 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
         return $logoutResponseBuilder
             ->setInResponseTo($logoutRequest->getId())
             ->setDestination($serviceProvider->getSingleLogoutUrl())
-            ->setIssuer($this->identityProvider->getEntityId())
+            ->setIssuer($this->hostedEntities->getIdentityProvider()->getEntityId())
             ->setSignatureKey($this->getIdentityProviderXmlPrivateKey())
             ->setStatus(\SAML2_Const::STATUS_SUCCESS)
             ->setRelayState($logoutRequest->getRelayState())
@@ -577,7 +589,7 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
     protected function getIdentityProviderXmlPrivateKey()
     {
         /** @var \SAML2_Configuration_PrivateKey $privateKey */
-        $privateKey = $this->identityProvider->getPrivateKey("default");
+        $privateKey = $this->hostedEntities->getIdentityProvider()->getPrivateKey("default");
         $xmlPrivateKey = new \XMLSecurityKey(\XMLSecurityKey::RSA_SHA256, ['type' => 'private']);
         $xmlPrivateKey->loadKey($privateKey->getFilePath(), true);
 

@@ -166,13 +166,13 @@ final class ReceivedMessageQueryString
             );
         }
 
-        $query = self::PARAMETER_REQUEST . '=' . $this->samlMessage;
+        $query = self::PARAMETER_REQUEST . '=' . urlencode($this->samlMessage);
 
         if ($this->hasRelayState()) {
-            $query .= '&' . self::PARAMETER_RELAY_STATE . '=' . $this->relayState;
+            $query .= '&' . self::PARAMETER_RELAY_STATE . '=' . urlencode($this->relayState);
         }
 
-        $query .= '&' . self::PARAMETER_SIGNATURE_ALGORITHM . '=' . $this->signatureAlgorithm;
+        $query .= '&' . self::PARAMETER_SIGNATURE_ALGORITHM . '=' . urlencode($this->signatureAlgorithm);
 
         return $query;
     }

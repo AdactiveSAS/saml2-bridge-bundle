@@ -33,4 +33,18 @@ class ServiceProvider extends \SAML2_Configuration_ServiceProvider
     public function getSingleLogoutBinding(){
         return $this->get('singleLogoutBinding');
     }
+
+    /**
+     * @return string|null
+     */
+    public function getNameIdFormat(){
+        return $this->get('nameIdFormat');
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getAttributes(){
+        return $this->get('attributes');
+    }
 }

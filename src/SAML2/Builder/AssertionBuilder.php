@@ -86,7 +86,7 @@ class AssertionBuilder
      */
     public function setAttribute($name, $value){
         $attributes = $this->assertion->getAttributes();
-        $attributes[$name] = $value;
+        $attributes[$name] = [$value];
 
         return $this->setAttributes($attributes);
     }
@@ -101,6 +101,36 @@ class AssertionBuilder
             "Value" => $value,
             "Format" => $format
         ]);
+
+        return $this;
+    }
+
+    /**
+     * @return $this
+     */
+    public function setSubjectConfirmation($method = SAML2_Const::CM_BEARER, $inResponseTo, \DateInterval $notOnOrAfter, $recipient) {
+        $subjectConfirmationData = new \SAML2_XML_saml_SubjectConfirmationData();
+        $subjectConfirmationData->InResponseTo = $inResponseTo;
+
+        $endTime = clone $this->issueInstant;
+        $endTime->add($notOnOrAfter);
+        $subjectConfirmationData->NotOnOrAfter = $endTime->getTimestamp();
+
+        $subjectConfirmationData->NotBefore = $this->issueInstant->getTimestamp();
+        $subjectConfirmationData->Recipient = $recipient;
+
+        $subjectConformation = new \SAML2_XML_saml_SubjectConfirmation();
+        $subjectConformation->Method = $method;
+        $subjectConformation->SubjectConfirmationData = $subjectConfirmationData;
+        $this->assertion->setSubjectConfirmation([$subjectConformation]);
+
+        return $this;
+    }
+    /**
+     * @return $this
+     */
+    public function setAuthnContext($authnContext = SAML2_Const::AC_PASSWORD) {
+        $this->assertion->setAuthnContext($authnContext);
 
         return $this;
     }

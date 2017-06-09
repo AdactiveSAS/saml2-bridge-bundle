@@ -62,16 +62,18 @@ class AdactiveSasSaml2BridgeExtension extends Extension
             return;
         }
 
-        $container->setDefinition("adactive_sas_saml2_bridge.processor.hosted_idp", new Definition(
+        $hostedIdpDefinition = new Definition(
             HostedIdentityProviderProcessor::class,
             [
                 new Reference($identityProvider['service_provider_repository']),
-                new Reference("adactive_sas_saml2_bridge.hosted.identity_provider"),
+                new Reference("adactive_sas_saml2_bridge.configuration.hosted_entities"),
                 new Reference("adactive_sas_saml2_bridge.http.binding_container"),
                 new Reference("adactive_sas_saml2_bridge.state.handler"),
                 new Reference("event_dispatcher"),
                 new Reference("adactive_sas_saml2_bridge.metadata.factory"),
             ]
-        ));
+        );
+        $hostedIdpDefinition->addTag('kernel.event_subscriber');
+        $container->setDefinition("adactive_sas_saml2_bridge.processor.hosted_idp", $hostedIdpDefinition);
     }
 }
