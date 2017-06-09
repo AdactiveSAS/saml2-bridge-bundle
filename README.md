@@ -51,6 +51,12 @@ adactive_sas_saml2_bridge:
             public_key: %idp_public_key_file_path%
             private_key: %idp_private_key_file_path%
 ```
+
+Also add logout handler.
+```yaml
+            logout:
+                handlers: [adactive_sas_saml2_bridge.logout.handler]
+```
 The hosted configuration lists the configuration for the services (SP, IdP or both) that your application offers. SP and IdP
  functionality can be turned off and on individually through the repective `enabled` flags.
  
