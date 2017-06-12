@@ -493,7 +493,7 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
             ->setNotOnOrAfter(new \DateInterval('PT5M'))
             ->setSessionNotOnOrAfter(new \DateInterval('P1D'))
             ->setIssuer($this->hostedEntities->getIdentityProvider()->getEntityId())
-            ->setNameId($this->stateHandler->get()->getUserName(), $serviceProvider->getNameIdFormat())
+            ->setNameId($this->stateHandler->get()->getUserName(), $serviceProvider->getNameIdFormat(), $serviceProvider->getNameQualifier(), $authnRequest->getIssuer())
             ->setSubjectConfirmation(\SAML2_Const::CM_BEARER, $authnRequest->getId(), new \DateInterval('PT5M'), $serviceProvider->getAssertionConsumerUrl())
             ->setAuthnContext('urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport');
 
@@ -501,6 +501,7 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
         foreach ($serviceProvider->getAttributes() as $attributeName => $attributeCallback) {
             $assertionBuilder->setAttribute($attributeName, $attributeCallback($user));
         }
+        $assertionBuilder->setAttributesNameFormat(\SAML2_Const::NAMEFORMAT_UNSPECIFIED);
 
         $authnResponseBuilder
             ->setStatus(\SAML2_Const::STATUS_SUCCESS)

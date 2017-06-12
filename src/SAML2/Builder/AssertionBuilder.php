@@ -80,6 +80,16 @@ class AssertionBuilder
     }
 
     /**
+     * @param array $attributes
+     * @return $this
+     */
+    public function setAttributesNameFormat($nameFormat = \SAML2_Const::NAMEFORMAT_UNSPECIFIED){
+        $this->assertion->setAttributeNameFormat($nameFormat);
+
+        return $this;
+    }
+
+    /**
      * @param string $name
      * @param $value
      * @return AssertionBuilder
@@ -96,10 +106,12 @@ class AssertionBuilder
      * @param $format
      * @return $this
      */
-    public function setNameId($value, $format) {
+    public function setNameId($value, $format, $nameQualifier, $spNameQualifier) {
         $this->assertion->setNameId([
             "Value" => $value,
-            "Format" => $format
+            "Format" => $format,
+            "NameQualifier" => $nameQualifier,
+            "SPNameQualifier" => $spNameQualifier,
         ]);
 
         return $this;
@@ -116,7 +128,6 @@ class AssertionBuilder
         $endTime->add($notOnOrAfter);
         $subjectConfirmationData->NotOnOrAfter = $endTime->getTimestamp();
 
-        $subjectConfirmationData->NotBefore = $this->issueInstant->getTimestamp();
         $subjectConfirmationData->Recipient = $recipient;
 
         $subjectConformation = new \SAML2_XML_saml_SubjectConfirmation();

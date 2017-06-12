@@ -47,4 +47,11 @@ class ServiceProvider extends \SAML2_Configuration_ServiceProvider
     public function getAttributes(){
         return $this->get('attributes');
     }
+
+    /**
+     * @return string|null
+     */
+    public function getNameQualifier(){
+        return $this->get('NameQualifier');
+    }
 }
