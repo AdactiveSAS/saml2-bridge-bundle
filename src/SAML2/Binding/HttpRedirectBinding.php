@@ -249,6 +249,10 @@ class HttpRedirectBinding implements HttpBindingInterface
 
         $message = \SAML2_Message::fromXML($document->firstChild);
 
+        if (null === $message->getRelayState()) {
+            $message->setRelayState($query->getRelayState());
+        }
+
         $currentUri = $this->getFullRequestUri($request);
         if (!$message->getDestination() === $currentUri) {
             throw new BadRequestHttpException(sprintf(
