@@ -118,27 +118,29 @@ class SamlServiceProviderRepository implements ServiceProviderRepository
                 "assertionConsumerUrl" => "https://test.fake/saml/acs",
                 "assertionConsumerBinding" => \SAML2_Const::BINDING_HTTP_POST,
                 "singleLogoutUrl" => "https://test.fake/saml/sls",
-                "singleLogoutBinding" => \SAML2_Const::BINDING_HTTP_REDIRECT
+                "singleLogoutBinding" => \SAML2_Const::BINDING_HTTP_REDIRECT,
+                "nameIdFormat" => \SAML2_Const::NAMEID_PERSISTENT,
+                "NameQualifier" => 'test.fake',
+                "attributes" => [
+                    'User.Email' => function (UserInterface $user) {
+                        /** @var User $user */
+                        return $user->getEmailCanonical();
+                    },
+                    'User.Username' => function (UserInterface $user) {
+                        /** @var User $user */
+                        return $user->getName();
+                    },
+                    'first_name' => function (UserInterface $user) {
+                        /** @var User $user */
+                        return $user->getFirstName();
+                    },
+                    'last_name' => function (UserInterface $user) {
+                        /** @var User $user */
+                        return $user->getLastName();
+                    },
+                ],
             ]
         );
-    }
-
-    /**
-     * @param string $entityId
-     * @return ServiceProvider
-     */
-    public function getServiceProvider($entityId)
-    {
-        return $this->hasServiceProvider($entityId) ? $this->spMap[$entityId] : null;
-    }
-
-    /**
-     * @param string $entityId
-     * @return bool
-     */
-    public function hasServiceProvider($entityId)
-    {
-        return array_key_exists($entityId, $this->spMap);
     }
 }
 ```
