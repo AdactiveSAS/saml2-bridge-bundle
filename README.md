@@ -142,7 +142,82 @@ class SamlServiceProviderRepository implements ServiceProviderRepository
             ]
         );
     }
+
+    /**
+     * @param string $entityId
+     * @return ServiceProvider
+     */
+    public function getServiceProvider($entityId)
+    {
+        return $this->hasServiceProvider($entityId) ? $this->spMap[$entityId] : null;
+    }
+
+    /**
+     * @param string $entityId
+     * @return bool
+     */
+    public function hasServiceProvider($entityId)
+    {
+        return array_key_exists($entityId, $this->spMap);
+    }
 }
+```
+
+######Slack example
+```
+        $this->spMap["https://slack.com"] = new ServiceProvider(
+            [
+                /**
+                 * Returns the contents of an X509 pem certificate, without the '-----BEGIN CERTIFICATE-----' and
+                 * '-----END CERTIFICATE-----'.
+                 *
+                 * @return null|string
+                 */
+                'certificateData' => 'MIIDrzCCApagAwIBAgIBADANBgkqhkiG9w0BAQ0FADBxMQswCQYDVQQGEwJ1czETMBEGA1UECAwKQ2FsaWZvcm5pYTEhMB8GA1UECgwYU2xhY2sgVGVjaG5vbG9naWVzLCBJbmMuMRIwEAYDVQQDDAlzbGFjay5jb20xFjAUBgNVBAcMDVNhbiBGcmFuY2lzY28wHhcNMTUwMzE3MDEyMzMyWhcNMjUwMzE0MDEyMzMyWjBxMQswCQYDVQQGEwJ1czETMBEGA1UECAwKQ2FsaWZvcm5pYTEhMB8GA1UECgwYU2xhY2sgVGVjaG5vbG9naWVzLCBJbmMuMRIwEAYDVQQDDAlzbGFjay5jb20xFjAUBgNVBAcMDVNhbiBGcmFuY2lzY28wggEjMA0GCSqGSIb3DQEBAQUAA4IBEAAwggELAoIBAgDB0y4ruySosz1GX/3KI1jp4oivxtnXLeMwKELrBgG+rZ8pl+UMhLG2iCp0nbnwSxXVU0ONJVI3SSzJ5VQtBHHCA4UAzse0HRaSZfBs+6urKoMLf8iusBYk62f2g/RAPjsMVcjC8B3FHyhaD9OnWSdJ7uGopmwwEhDiwf/gdS9Uw8FojYDuVprODfmj7+fgWPkGTf8TRGaHjudjuP1LMDRAz2cI0ym09jbnW8BVynSjjUrE+K9ri1uWzT2tp49OHqSgjaXkWWY6prFa9MT8jsibe02Id2i5+h0c4F892O7MybNWgF139dMGapmW4rf3GT7brLZEO4sZPwovhlj3b6U+8wIDAQABo1AwTjAdBgNVHQ4EFgQUa2YVk5yi+WMxLT/q7rokAfzyvU0wHwYDVR0jBBgwFoAUa2YVk5yi+WMxLT/q7rokAfzyvU0wDAYDVR0TBAUwAwEB/zANBgkqhkiG9w0BAQ0FAAOCAQIAUwv53vh2LkgbJbBGyRlSkjAZyybwM7pO6TtQ4SHyn366SG1lZXkc9S9u8m4kMETDquOujC/fZLiAe4f8rZ8+ZXV0f17FL/RhMDzVBv6DgDabfpXAkt+Yn+ZIThFi2D7L4jyJzZPbaf7soCu1e/Dx0CBhm/Lz2nsny6Il7rkEbDB7gBpjZODMMi/PEJ5I462JUrj+9aSZBtx2/NXIoFkLZ1B4j3UG+WJhcYMlMBim/GTimKS7yzkvfqdADmIAaO0RPYduNPds6Dyjyjbqj3XR3WwdsmTorO95UKitRGu10ImwByXo2xzQCwGNP8WuRAmWVIlisLLNEDKTnZDb38085gY=',
+
+                /**
+                 * Returns the full path to the (local) file that contains the X509 pem certificate.
+                 *
+                 * @return null|string
+                 */
+                "certificateFile" => "",
+
+                /**
+                 * @return null|string
+                 */
+                "entityId" => "https://slack.com",
+
+                /**
+                 * @return null|bool
+                 */
+                "assertionEncryptionEnabled" => true,
+
+                "assertionConsumerUrl" => "https://YOURTEAM.slack.com/sso/saml",
+                "assertionConsumerBinding" => \SAML2_Const::BINDING_HTTP_POST,
+                "singleLogoutUrl" => "https://YOURTEAM.slack.com/sso/saml/logout",
+                "singleLogoutBinding" => \SAML2_Const::BINDING_HTTP_REDIRECT,
+                "nameIdFormat" => \SAML2_Const::NAMEID_PERSISTENT,
+                "NameQualifier" => 'YOURTEAM.slack.com',
+                "attributes" => [
+                    'User.Email' => function (UserInterface $user) {
+                        /** @var User $user */
+                        return $user->getEmailCanonical();
+                    },
+                    'User.Username' => function (UserInterface $user) {
+                        /** @var User $user */
+                        return $user->getName();
+                    },
+                    'first_name' => function (UserInterface $user) {
+                        /** @var User $user */
+                        return $user->getFirstName();
+                    },
+                    'last_name' => function (UserInterface $user) {
+                        /** @var User $user */
+                        return $user->getLastName();
+                    },
+                ],
+            ]
+
 ```
 
 > Note: Keep in mind that this is a example, you may retrieve ServiceProviders from database
