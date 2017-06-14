@@ -17,13 +17,13 @@ use AdactiveSas\Saml2BridgeBundle\SAML2\Builder\LogoutResponseBuilder;
 use AdactiveSas\Saml2BridgeBundle\SAML2\Event\AuthenticationSuccessEvent;
 use AdactiveSas\Saml2BridgeBundle\SAML2\Event\GetAuthnResponseEvent;
 use AdactiveSas\Saml2BridgeBundle\SAML2\Event\LogoutEvent;
+use AdactiveSas\Saml2BridgeBundle\SAML2\Event\ReceiveAuthnRequestEvent;
 use AdactiveSas\Saml2BridgeBundle\SAML2\Event\Saml2Events;
 use AdactiveSas\Saml2BridgeBundle\SAML2\Metadata\MetadataFactory;
 use AdactiveSas\Saml2BridgeBundle\SAML2\State\SamlState;
 use AdactiveSas\Saml2BridgeBundle\SAML2\State\SamlStateHandler;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
-use Sensio\Bundle\FrameworkExtraBundle\EventListener\ParamConverterListener;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -86,11 +86,15 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
 
     /**
      * HostedIdentityProvider constructor.
+     *
      * @param ServiceProviderRepository $serviceProviderRepository
-     * @param HostedEntities HostedEntities
+     * @param HostedEntities $hostedEntities
      * @param HttpBindingContainer $bindingContainer
      * @param SamlStateHandler $stateHandler
      * @param EventDispatcherInterface $eventDispatcher
+     * @param MetadataFactory $metadataFactory
+     *
+     * @internal param HostedEntities $HostedEntities
      */
     public function __construct(
         ServiceProviderRepository $serviceProviderRepository,
@@ -164,7 +168,10 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
             return;
         }
 
-        if ($this->stateHandler->can(SamlStateHandler::TRANSITION_SSO_RESPOND)) {
+        if (
+            $this->stateHandler->can(SamlStateHandler::TRANSITION_SSO_RESPOND)
+            && $this->stateHandler->get()->getRequest() !== null
+        ) {
             $event->setResponse($this->continueSingleSignOn());
             return;
         }
@@ -245,6 +252,7 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
         return $this->metadataFactory->getMetadataResponse();
     }
 
+
     /**
      * @param Request $httpRequest
      * @return \Symfony\Component\HttpFoundation\Response
@@ -260,6 +268,12 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
         try {
             $authRequest = $inputBinding->receiveSignedAuthnRequest($httpRequest);
             $this->validateRequest($authRequest);
+
+            $event = new ReceiveAuthnRequestEvent(
+                $authRequest, $this->hostedEntities->getIdentityProvider(),
+                $this->stateHandler
+            );
+            $this->eventDispatcher->dispatch(Saml2Events::SSO_AUTHN_RECEIVE_REQUEST, $event);
         } catch (\Throwable $e) {
             // handle error, apparently the request cannot be processed :(
             $msg = sprintf('Could not process Request, error: "%s"', $e->getMessage());
