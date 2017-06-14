@@ -176,7 +176,10 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
             return;
         }
 
-        if ($this->stateHandler->can(SamlStateHandler::TRANSITION_SLS_RESPOND)) {
+        if (
+            $this->stateHandler->can(SamlStateHandler::TRANSITION_SLS_RESPOND)
+            && $this->stateHandler->get()->getRequest() !== null
+        ) {
             $event->setResponse($this->continueSingleLogoutService());
             return;
         }
