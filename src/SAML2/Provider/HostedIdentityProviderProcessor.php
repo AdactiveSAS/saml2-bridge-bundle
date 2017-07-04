@@ -206,11 +206,7 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
             $this->stateHandler->get()->setUserName($user->getUsername());
         }
 
-        if (
-            $this->stateHandler->get() !== null
-            && $this->stateHandler->get()->getRequest() !== null
-            && !$this->stateHandler->can(SamlStateHandler::TRANSITION_SSO_AUTHENTICATE_SUCCESS)
-        ) {
+        if (!$this->stateHandler->can(SamlStateHandler::TRANSITION_SSO_AUTHENTICATE_SUCCESS)) {
             $this->logger->debug("Cannot perform authentication success");
             return;
         }
@@ -224,11 +220,7 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
      */
     public function onAuthenticationFailure(CoreAuthenticationFailureEvent $event)
     {
-        if (
-            $this->stateHandler->get() !== null
-            && $this->stateHandler->get()->getRequest() !== null
-            && !$this->stateHandler->can(SamlStateHandler::TRANSITION_SSO_AUTHENTICATE_FAIL)
-        ) {
+        if (!$this->stateHandler->can(SamlStateHandler::TRANSITION_SSO_AUTHENTICATE_FAIL)) {
             $this->logger->debug("Cannot perform authentication fail");
             return;
         }
@@ -242,11 +234,7 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
      */
     public function onLogoutSuccess(LogoutEvent $event)
     {
-        if (
-            $this->stateHandler->get() !== null
-            && $this->stateHandler->get()->getRequest() !== null
-            && !$this->stateHandler->can(SamlStateHandler::TRANSITION_SLS_END_DISPATCH)
-        ) {
+        if (!$this->stateHandler->can(SamlStateHandler::TRANSITION_SLS_END_DISPATCH)) {
             $this->logger->notice("Logout initiated by IDP");
             $this->stateHandler->resume(true);
             $this->stateHandler->get()->setOriginalLogoutResponse($event->getResponse());
