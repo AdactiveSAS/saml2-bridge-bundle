@@ -198,7 +198,11 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
         }
 
         $user = $event->getAuthenticationToken()->getUser();
-        if($user instanceof UserInterface){
+        if (
+            $this->stateHandler->get() !== null
+            && $this->stateHandler->get()->getRequest() !== null
+            && $user instanceof UserInterface
+        ){
             $this->stateHandler->get()->setUserName($user->getUsername());
         }
 
