@@ -306,6 +306,10 @@ class SamlStateHandler implements EventSubscriberInterface
      */
     public function can($transition)
     {
+        if ($this->get() === null) {
+            return false;
+        }
+
         return $this->workflow->can($this->get(), $transition);
     }
 
