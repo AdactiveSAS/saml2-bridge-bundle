@@ -158,6 +158,23 @@ class HttpRedirectBinding implements HttpBindingInterface
 
     /**
      * @param Request $request
+     * @return \SAML2_AuthnRequest
+     */
+    public function receiveAuthnRequest(Request $request){
+        $message = $this->receiveUnsignedMessage($request);
+
+        if (!$message instanceof \SAML2_AuthnRequest) {
+            throw new InvalidArgumentException(sprintf(
+                'The received request is not an AuthnRequest, "%s" received instead',
+                substr(get_class($message), strrpos($message, '_') + 1)
+            ));
+        }
+
+        return $message;
+    }
+
+    /**
+     * @param Request $request
      * @return \SAML2_LogoutRequest
      */
     public function receiveSignedLogoutRequest(Request $request){

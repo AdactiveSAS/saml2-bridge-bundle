@@ -120,7 +120,7 @@ class AssertionBuilder
     /**
      * @return $this
      */
-    public function setSubjectConfirmation($method = SAML2_Const::CM_BEARER, $inResponseTo, \DateInterval $notOnOrAfter, $recipient) {
+    public function setSubjectConfirmation($method = \SAML2_Const::CM_BEARER, $inResponseTo, \DateInterval $notOnOrAfter, $recipient) {
         $subjectConfirmationData = new \SAML2_XML_saml_SubjectConfirmationData();
         $subjectConfirmationData->InResponseTo = $inResponseTo;
 
@@ -140,8 +140,8 @@ class AssertionBuilder
     /**
      * @return $this
      */
-    public function setAuthnContext($authnContext = SAML2_Const::AC_PASSWORD) {
-        $this->assertion->setAuthnContext($authnContext);
+    public function setAuthnContext($authnContext = \SAML2_Const::AC_PASSWORD) {
+        $this->assertion->setAuthnContextClassRef($authnContext);
 
         return $this;
     }
@@ -154,5 +154,16 @@ class AssertionBuilder
         $this->assertion->setIssuer($issuer);
 
         return $this;
+    }
+
+    /**
+     * @param \XMLSecurityKey $privateKey
+     * @param \XMLSecurityKey $publicCert
+     */
+    public function sign(\XMLSecurityKey $privateKey, \XMLSecurityKey $publicCert)
+    {
+        $element = $this->assertion;
+        $element->setSignatureKey($privateKey);
+        $element->setCertificates([$publicCert->getX509Certificate()]);
     }
 }

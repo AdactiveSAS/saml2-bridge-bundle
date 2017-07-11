@@ -54,7 +54,14 @@ class HttpPostBinding implements HttpBindingInterface
      */
     public function getUnsignedResponse(\SAML2_StatusResponse $response)
     {
-        throw new UnsupportedBindingException("Unsupported binding: unsigned POST Response is not supported at the moment");
+        $form = $this->getUnsignedResponseForm($response);
+
+        return $this->templateEngine->renderResponse(
+            "AdactiveSasSaml2BridgeBundle:Binding:post.html.twig",
+            [
+                "form" => $form->createView(),
+            ]
+        );
     }
 
     /**
@@ -82,6 +89,17 @@ class HttpPostBinding implements HttpBindingInterface
     public function receiveSignedAuthnRequest(Request $request)
     {
         throw new UnsupportedBindingException("Unsupported binding: signed POST AuthnRequest is not supported at the moment");
+    }
+
+    /**
+     * @param Request $request
+     * @return \SAML2_AuthnRequest
+     */
+    public function receiveAuthnRequest(Request $request)
+    {
+        throw new UnsupportedBindingException(
+            "Unsupported binding: signed POST AuthnRequest is not supported at the moment"
+        );
     }
 
     /**
@@ -117,28 +135,7 @@ class HttpPostBinding implements HttpBindingInterface
      */
     public function getSignedResponseForm(\SAML2_StatusResponse $response)
     {
-        if($response->getDestination() === null){
-            throw new LogicException('Invalid destination');
-        }
-
-        $data = [
-            'SAMLResponse' => base64_encode($response->toSignedXML()->ownerDocument->saveXML()),
-        ];
-
-        $hasRelayState = !empty($response->getRelayState());
-        if($hasRelayState){
-            $data["RelayState"] = $response->getRelayState();
-        }
-
-        return $this->formFactory->createNamed(
-            "",
-            SAML2ResponseForm::class,
-            $data,
-            [
-            "has_relay_state"=> $hasRelayState,
-            "destination" => $response->getDestination()
-            ]
-        );
+        return $this->getResponseForm($response, true);
     }
 
     /**
@@ -147,21 +144,43 @@ class HttpPostBinding implements HttpBindingInterface
      */
     public function getUnsignedResponseForm(\SAML2_StatusResponse $response)
     {
+        return $this->getResponseForm($response, false);
+    }
+
+    /**
+     * @param \SAML2_StatusResponse $response
+     * @param bool $isSign
+     *
+     * @return \Symfony\Component\Form\FormInterface
+     */
+    protected function getResponseForm(\SAML2_StatusResponse $response, $isSign)
+    {
+        if ($response->getDestination() === null) {
+            throw new LogicException('Invalid destination');
+        }
+
+        if ($isSign) {
+            $xml = $response->toSignedXML()->ownerDocument->saveXML();
+        } else {
+            $xml = $response->toUnsignedXML()->ownerDocument->saveXML();
+        }
+
         $data = [
-            'SAMLResponse' => base64_encode($response->toUnsignedXML()->ownerDocument->saveXML()),
+            'SAMLResponse' => base64_encode($xml),
         ];
 
         $hasRelayState = !empty($response->getRelayState());
-        if($hasRelayState){
+        if ($hasRelayState) {
             $data["RelayState"] = $response->getRelayState();
         }
 
-        return $this->formFactory->create(
+        return $this->formFactory->createNamed(
+            "",
             SAML2ResponseForm::class,
             $data,
             [
-            "has_relay_state"=> $hasRelayState,
-            "destination" => $response->getDestination()
+                "has_relay_state" => $hasRelayState,
+                "destination" => $response->getDestination(),
             ]
         );
     }

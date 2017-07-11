@@ -274,7 +274,12 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
         $inputBinding = $this->bindingContainer->get($this->hostedEntities->getIdentityProvider()->getSsoBinding());
 
         try {
-            $authRequest = $inputBinding->receiveSignedAuthnRequest($httpRequest);
+            $authRequest = $inputBinding->receiveAuthnRequest($httpRequest);
+            $sp = $this->getServiceProvider($authRequest->getIssuer());
+            if ($sp->isAuthnRequestSignRequired()) {
+                $authRequest = $inputBinding->receiveSignedAuthnRequest($httpRequest);
+            }
+
             $this->validateRequest($authRequest);
 
             $event = new ReceiveAuthnRequestEvent(
@@ -346,7 +351,11 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
 
         $this->stateHandler->apply(SamlStateHandler::TRANSITION_SSO_RESPOND);
 
-        $response = $outBinding->getSignedResponse($authnResponse);
+        if ($sp->isResponseSign()) {
+            $response = $outBinding->getSignedResponse($authnResponse);
+        } else {
+            $response = $outBinding->getUnsignedResponse($authnResponse);
+        }
 
         $this->stateHandler->resume();
 
@@ -524,6 +533,10 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
             $assertionBuilder->setAttribute($attributeName, $attributeCallback($user));
         }
         $assertionBuilder->setAttributesNameFormat(\SAML2_Const::NAMEFORMAT_UNSPECIFIED);
+        if ($serviceProvider->isAssertionSign()) {
+            $assertionBuilder->sign($this->getIdentityProviderXmlPrivateKey(), $this->getIdentityProviderXmlPublicKey());
+        }
+        $assertionBuilder->setAttributesNameFormat(\SAML2_Const::NAMEFORMAT_UNSPECIFIED);
 
         $authnResponseBuilder
             ->setStatus(\SAML2_Const::STATUS_SUCCESS)
@@ -617,6 +630,18 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
         $xmlPrivateKey->loadKey($privateKey->getFilePath(), true);
 
         return $xmlPrivateKey;
+    }
+
+    /**
+     * @return \XMLSecurityKey
+     */
+    protected function getIdentityProviderXmlPublicKey()
+    {
+        $publicFileCert = $this->hostedEntities->getIdentityProvider()->getCertificateFile();
+        $xmlPublicKey = new \XMLSecurityKey(\XMLSecurityKey::RSA_SHA256, ['type' => 'public']);
+        $xmlPublicKey->loadKey($publicFileCert, true, true);
+
+        return $xmlPublicKey;
     }
 
     /**
