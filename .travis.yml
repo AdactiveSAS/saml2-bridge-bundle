@@ -1,0 +1,24 @@
+language: php
+
+dist: precise
+sudo: false
+
+matrix:
+  include:
+    - php: 5.3
+    - php: 5.4
+    - php: 5.5
+    - php: 5.6
+    - php: 7.0
+    - php: 7.1
+  fast_finish: true
+
+before_script:
+  - composer install
+
+script:
+  - vendor/bin/phpunit
+
+notifications:
+  email:
+    - moroine.bentefrit@adactive.com
