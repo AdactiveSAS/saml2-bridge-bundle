@@ -6,13 +6,16 @@ security:
         in_memory:
             memory:
                 users:
-                    johannes: { password: test, roles: [ROLE_USER] }
+                    moroine: { password: test, roles: [ROLE_USER] }
 
     firewalls:
         main:
+            pattern: .*
             form_login:
+                provider: in_memory
                 login_path: login
                 check_path: login
+            anonymous:  true
 
     access_control:
       - { path: ^/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }

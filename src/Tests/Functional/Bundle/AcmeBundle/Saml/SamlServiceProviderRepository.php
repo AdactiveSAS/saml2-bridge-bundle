@@ -8,10 +8,13 @@ use AdactiveSas\Saml2BridgeBundle\Entity\ServiceProviderRepository;
 
 class SamlServiceProviderRepository implements ServiceProviderRepository
 {
+    const SP_BASIC = "https://test.fake/metadata";
+    const SP_NO_SIGNING = "https://test.other.fake/metadata";
+
     protected $spMap = [];
 
     public function __construct() {
-        $this->spMap["https://test.fake/metadata"] = new ServiceProvider(
+        $this->spMap[static::SP_BASIC] = new ServiceProvider(
             [
                 /**
                  * Returns the contents of an X509 pem certificate, without the '-----BEGIN CERTIFICATE-----' and
@@ -24,17 +27,29 @@ class SamlServiceProviderRepository implements ServiceProviderRepository
                 /**
                  * @return null|string
                  */
-                "entityId" => "https://test.fake/saml/metadata",
-
-                /**
-                 * @return null|bool
-                 */
-                "assertionEncryptionEnabled" => true,
+                "entityId" => static::SP_BASIC,
 
                 "assertionConsumerUrl" => "https://test.fake/saml/acs",
-                "assertionConsumerBinding" => \SAML2_Const::BINDING_HTTP_POST,
+                "assertionConsumerBinding" => \SAML2_Const::BINDING_HTTP_REDIRECT,
                 "singleLogoutUrl" => "https://test.fake/saml/sls",
                 "singleLogoutBinding" => \SAML2_Const::BINDING_HTTP_REDIRECT
+            ]
+        );
+        $this->spMap[static::SP_NO_SIGNING] = new ServiceProvider(
+            [
+                /**
+                 * @return null|string
+                 */
+                "entityId" => static::SP_NO_SIGNING,
+
+                "assertionConsumerUrl" => "https://test.other.fake/saml/acs",
+                "assertionConsumerBinding" => \SAML2_Const::BINDING_HTTP_REDIRECT,
+                "singleLogoutUrl" => "https://test.other.fake/saml/sls",
+                "singleLogoutBinding" => \SAML2_Const::BINDING_HTTP_REDIRECT,
+                "wantSignedAuthnResponse" => false,
+                "wantSignedAssertions" => false,
+                "wantSignedLogoutResponse" => false,
+                "wantSignedLogoutRequest" => false,
             ]
         );
     }

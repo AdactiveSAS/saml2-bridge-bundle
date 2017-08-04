@@ -1,5 +1,21 @@
 <?php
 
+/**
+ * Copyright 2017 Adactive SAS
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 namespace AdactiveSas\Saml2BridgeBundle\SAML2\Binding;
 
 
@@ -85,7 +101,29 @@ class HttpRedirectBinding implements HttpBindingInterface
      */
     public function getUnsignedResponse(\SAML2_StatusResponse $response)
     {
-        throw new UnsupportedBindingException("Unsupported binding: unsigned REDIRECT Response is not supported at the moment");
+        $destination = $response->getDestination();
+        if($destination === null){
+            throw new LogicException('Invalid destination');
+        }
+
+        $responseAsXml = $response->toUnsignedXML()->ownerDocument->saveXML();
+        $encodedResponse = base64_encode(gzdeflate($responseAsXml));
+
+        /* Build the query string. */
+
+        $msg = 'SAMLResponse=' . urlencode($encodedResponse);
+
+        if ($response->getRelayState() !== NULL) {
+            $msg .= '&RelayState=' . urlencode($response->getRelayState());
+        }
+
+        if (strpos($destination, '?') === FALSE) {
+            $destination .= '?' . $msg;
+        } else {
+            $destination .= '&' . $msg;
+        }
+
+        return new RedirectResponse($destination);
     }
 
     /**
@@ -162,6 +200,40 @@ class HttpRedirectBinding implements HttpBindingInterface
      */
     public function receiveSignedLogoutRequest(Request $request){
         $message = $this->receiveSignedMessage($request);
+
+        if (!$message instanceof \SAML2_LogoutRequest) {
+            throw new InvalidArgumentException(sprintf(
+                'The received request is not an LogoutRequest, "%s" received instead',
+                substr(get_class($message), strrpos($message, '_') + 1)
+            ));
+        }
+
+        return $message;
+    }
+
+    /**
+     * @param Request $request
+     * @return \SAML2_AuthnRequest
+     */
+    public function receiveUnsignedAuthnRequest(Request $request){
+        $message = $this->receiveUnsignedMessage($request);
+
+        if (!$message instanceof \SAML2_AuthnRequest) {
+            throw new InvalidArgumentException(sprintf(
+                'The received request is not an AuthnRequest, "%s" received instead',
+                substr(get_class($message), strrpos($message, '_') + 1)
+            ));
+        }
+
+        return $message;
+    }
+
+    /**
+     * @param Request $request
+     * @return \SAML2_LogoutRequest
+     */
+    public function receiveUnsignedLogoutRequest(Request $request){
+        $message = $this->receiveUnsignedMessage($request);
 
         if (!$message instanceof \SAML2_LogoutRequest) {
             throw new InvalidArgumentException(sprintf(
