@@ -16,6 +16,5 @@ before_script:
 script:
   - vendor/bin/phpunit
 
-notifications:
-  email:
-    - moroine.bentefrit@adactive.com
+after_success:
+  - travis_retyr php vendor/bin/coveralls
