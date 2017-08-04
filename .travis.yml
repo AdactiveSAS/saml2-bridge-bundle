@@ -17,4 +17,4 @@ script:
   - vendor/bin/phpunit
 
 after_success:
-  - travis_retyr php vendor/bin/coveralls
+  - travis_retry php vendor/bin/coveralls
