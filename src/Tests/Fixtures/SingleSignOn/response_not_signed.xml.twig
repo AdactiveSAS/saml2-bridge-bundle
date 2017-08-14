@@ -15,15 +15,22 @@
             IssueInstant="{{ issueInstant }}">
         <saml:Issuer>http://localhost/saml/metadata/</saml:Issuer>
         <saml:Subject>
-            <saml:NameID Format="urn:oasis:names:tc:SAML:2.0:attrname-format:basic">moroine</saml:NameID>
+            <saml:NameID Format="urn:oasis:names:tc:SAML:2.0:attrname-format:basic" SPNameQualifier="{{ spNameQualifier }}">moroine</saml:NameID>
             <saml:SubjectConfirmation Method="urn:oasis:names:tc:SAML:2.0:cm:bearer">
                 <saml:SubjectConfirmationData
+                        InResponseTo="{{ inResponseTo }}"
                         NotBefore="{{ issueInstant }}"
                         NotOnOrAfter="{{ subjectNotOnOrAfter }}"
+                        Recipient="{{ recipient }}"
                 />
             </saml:SubjectConfirmation>
         </saml:Subject>
         <saml:Conditions NotBefore="{{ issueInstant }}" NotOnOrAfter="{{ sessionNotOnOrAfter }}"/>
+        <saml:AuthnStatement AuthnInstant="{{ issueInstant }}" SessionNotOnOrAfter="{{ subjectNotOnOrAfter }}">
+            <saml:AuthnContext>
+                <saml:AuthnContextClassRef>{{ authnContext }}</saml:AuthnContextClassRef>
+            </saml:AuthnContext>
+        </saml:AuthnStatement>
         <saml:AttributeStatement>
             <saml:Attribute Name="email">
                 <saml:AttributeValue xsi:type="xs:string">moroine.bentefrit@gmail.com</saml:AttributeValue>

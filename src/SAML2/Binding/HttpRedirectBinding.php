@@ -37,6 +37,8 @@ class HttpRedirectBinding implements HttpBindingInterface
      * @param ReceivedMessageQueryString $query g.
      * @param \XMLSecurityKey $key The key we should validate the query against.
      * @throws BadRequestHttpException
+     * @throws \AdactiveSas\Saml2BridgeBundle\Exception\LogicException
+     * @throws \AdactiveSas\Saml2BridgeBundle\Exception\RuntimeException
      */
     public static function validateSignature(ReceivedMessageQueryString $query, \XMLSecurityKey $key)
     {
@@ -56,6 +58,8 @@ class HttpRedirectBinding implements HttpBindingInterface
     /**
      * @param \SAML2_StatusResponse $response
      * @return RedirectResponse
+     * @throws \InvalidArgumentException
+     * @throws \AdactiveSas\Saml2BridgeBundle\Exception\LogicException
      */
     public function getSignedResponse(\SAML2_StatusResponse $response)
     {
@@ -98,6 +102,8 @@ class HttpRedirectBinding implements HttpBindingInterface
     /**
      * @param \SAML2_StatusResponse $response
      * @return RedirectResponse
+     * @throws \InvalidArgumentException
+     * @throws \AdactiveSas\Saml2BridgeBundle\Exception\LogicException
      */
     public function getUnsignedResponse(\SAML2_StatusResponse $response)
     {
@@ -129,6 +135,8 @@ class HttpRedirectBinding implements HttpBindingInterface
     /**
      * @param \SAML2_Request $request
      * @return Response
+     * @throws \InvalidArgumentException
+     * @throws \AdactiveSas\Saml2BridgeBundle\Exception\LogicException
      */
     public function getSignedRequest(\SAML2_Request $request)
     {
@@ -171,6 +179,7 @@ class HttpRedirectBinding implements HttpBindingInterface
     /**
      * @param \SAML2_Request $request
      * @return Response
+     * @throws \AdactiveSas\Saml2BridgeBundle\SAML2\Binding\Exception\UnsupportedBindingException
      */
     public function getUnsignedRequest(\SAML2_Request $request)
     {
@@ -180,6 +189,7 @@ class HttpRedirectBinding implements HttpBindingInterface
     /**
      * @param Request $request
      * @return \SAML2_AuthnRequest
+     * @throws \AdactiveSas\Saml2BridgeBundle\Exception\InvalidArgumentException
      */
     public function receiveSignedAuthnRequest(Request $request){
         $message = $this->receiveSignedMessage($request);
@@ -197,6 +207,7 @@ class HttpRedirectBinding implements HttpBindingInterface
     /**
      * @param Request $request
      * @return \SAML2_LogoutRequest
+     * @throws \AdactiveSas\Saml2BridgeBundle\Exception\InvalidArgumentException
      */
     public function receiveSignedLogoutRequest(Request $request){
         $message = $this->receiveSignedMessage($request);
@@ -214,6 +225,7 @@ class HttpRedirectBinding implements HttpBindingInterface
     /**
      * @param Request $request
      * @return \SAML2_AuthnRequest
+     * @throws \AdactiveSas\Saml2BridgeBundle\Exception\InvalidArgumentException
      */
     public function receiveUnsignedAuthnRequest(Request $request){
         $message = $this->receiveUnsignedMessage($request);
@@ -231,6 +243,7 @@ class HttpRedirectBinding implements HttpBindingInterface
     /**
      * @param Request $request
      * @return \SAML2_LogoutRequest
+     * @throws \AdactiveSas\Saml2BridgeBundle\Exception\InvalidArgumentException
      */
     public function receiveUnsignedLogoutRequest(Request $request){
         $message = $this->receiveUnsignedMessage($request);
@@ -248,6 +261,7 @@ class HttpRedirectBinding implements HttpBindingInterface
     /**
      * @param Request $request
      * @return \SAML2_Message
+     * @throws \AdactiveSas\Saml2BridgeBundle\Exception\BadRequestHttpException
      */
     public function receiveSignedMessage(Request $request)
     {
@@ -276,6 +290,8 @@ class HttpRedirectBinding implements HttpBindingInterface
     /**
      * @param Request $request
      * @return ReceivedMessageQueryString
+     * @throws \AdactiveSas\Saml2BridgeBundle\SAML2\Binding\Exception\InvalidReceivedMessageQueryStringException
+     * @throws \AdactiveSas\Saml2BridgeBundle\Exception\BadRequestHttpException
      */
     protected function getReceivedMessageQueryString(Request $request)
     {
@@ -302,6 +318,8 @@ class HttpRedirectBinding implements HttpBindingInterface
      * @param ReceivedMessageQueryString $query
      * @param Request $request
      * @return \SAML2_Message
+     * @throws \AdactiveSas\Saml2BridgeBundle\Exception\BadRequestHttpException
+     * @throws \AdactiveSas\Saml2BridgeBundle\Exception\InvalidArgumentException
      */
     protected function getReceivedSamlMessageFromQuery(ReceivedMessageQueryString $query, Request $request)
     {

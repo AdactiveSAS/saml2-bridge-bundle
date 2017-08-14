@@ -33,8 +33,10 @@ use AdactiveSas\Saml2BridgeBundle\SAML2\Builder\LogoutResponseBuilder;
 use AdactiveSas\Saml2BridgeBundle\SAML2\Event\AuthenticationSuccessEvent;
 use AdactiveSas\Saml2BridgeBundle\SAML2\Event\GetAuthnResponseEvent;
 use AdactiveSas\Saml2BridgeBundle\SAML2\Event\LogoutEvent;
+use AdactiveSas\Saml2BridgeBundle\SAML2\Event\ReceiveAuthnRequestEvent;
 use AdactiveSas\Saml2BridgeBundle\SAML2\Event\Saml2Events;
 use AdactiveSas\Saml2BridgeBundle\SAML2\Metadata\MetadataFactory;
+use AdactiveSas\Saml2BridgeBundle\SAML2\SAML2_Const;
 use AdactiveSas\Saml2BridgeBundle\SAML2\State\SamlState;
 use AdactiveSas\Saml2BridgeBundle\SAML2\State\SamlStateHandler;
 use Psr\Log\LoggerInterface;
@@ -176,6 +178,10 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
             return;
         }
 
+        if($event->getResponse()->isServerError() || $event->getResponse()->isClientError()){
+            return;
+        }
+
         if ($this->stateHandler->can(SamlStateHandler::TRANSITION_SSO_RESPOND)) {
             $event->setResponse($this->continueSingleSignOn());
             return;
@@ -198,16 +204,18 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
         }
 
         $user = $event->getAuthenticationToken()->getUser();
-        if($user instanceof UserInterface){
+        if($user instanceof UserInterface && $this->stateHandler->has()){
             $this->stateHandler->get()->setUserName($user->getUsername());
         }
 
         if (!$this->stateHandler->can(SamlStateHandler::TRANSITION_SSO_AUTHENTICATE_SUCCESS)) {
-            $this->logger->debug("Cannot perform authentication success");
+            $this->logger->debug('Cannot perform authentication success');
             return;
         }
 
-        $this->logger->notice("Authentication succeed");
+        $this->logger->notice('Authentication succeed');
+
+        $this->stateHandler->get()->setAuthnContext($this->identityProvider->getAuthnContext());
         $this->stateHandler->apply(SamlStateHandler::TRANSITION_SSO_AUTHENTICATE_SUCCESS);
     }
 
@@ -243,7 +251,7 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
             return;
         }
 
-        $this->logger->notice("Logout success");
+        $this->logger->notice('Logout success');
 
         $this->stateHandler->get()->setOriginalLogoutResponse($event->getResponse());
         $this->stateHandler->apply(SamlStateHandler::TRANSITION_SLS_END_DISPATCH);
@@ -260,6 +268,8 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
     /**
      * @param Request $httpRequest
      * @return \Symfony\Component\HttpFoundation\Response
+     * @throws \AdactiveSas\Saml2BridgeBundle\Exception\RuntimeException
+     * @throws \InvalidArgumentException
      */
     public function processSingleSignOn(Request $httpRequest)
     {
@@ -276,6 +286,9 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
                 $authRequest = $inputBinding->receiveUnsignedAuthnRequest($httpRequest);
             }
             $this->validateRequest($authRequest);
+
+            $event = new ReceiveAuthnRequestEvent($authRequest, $this->identityProvider, $this->stateHandler);
+            $this->eventDispatcher->dispatch(Saml2Events::SSO_AUTHN_RECEIVE_REQUEST, $event);
         } catch (\Throwable $e) {
             // handle error, apparently the request cannot be processed :(
             $msg = sprintf('Could not process Request, error: "%s"', $e->getMessage());
@@ -298,9 +311,9 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
 
             if($sp->wantSignedAuthnResponse()){
                 return $outBinding->getSignedResponse($authnResponse);
-            }else{
-                return $outBinding->getUnsignedResponse($authnResponse);
             }
+
+            return $outBinding->getUnsignedResponse($authnResponse);
         }
 
         if ($needLogin) {
@@ -314,6 +327,8 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
 
             return new RedirectResponse($this->identityProvider->getLoginUrl());
         }
+
+        $this->stateHandler->get()->setAuthnContext(SAML2_Const::AC_PREVIOUS_SESSION);
 
         return $this->continueSingleSignOn();
     }
@@ -350,7 +365,6 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
             $response = $outBinding->getUnsignedResponse($authnResponse);
         }
 
-
         $this->stateHandler->resume();
 
         return $response;
@@ -359,6 +373,7 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
     /**
      * @param Request $httpRequest
      * @return \Symfony\Component\HttpFoundation\Response
+     * @throws \AdactiveSas\Saml2BridgeBundle\Exception\InvalidArgumentException
      */
     public function processSingleLogoutService(Request $httpRequest)
     {
@@ -409,10 +424,11 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
 
     /**
      * @return \Symfony\Component\HttpFoundation\Response
+     * @throws \InvalidArgumentException
      */
     public function continueSingleLogoutService()
     {
-        $this->logger->notice("Continue SLS process");
+        $this->logger->notice('Continue SLS process');
         if ($this->stateHandler->can(SamlStateHandler::TRANSITION_SLS_START_DISPATCH)) {
             $this->stateHandler->apply(SamlStateHandler::TRANSITION_SLS_START_DISPATCH);
 
@@ -484,6 +500,7 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
     /**
      * @param \SAML2_AuthnRequest $authnRequest
      * @return bool
+     * @throws \AdactiveSas\Saml2BridgeBundle\Exception\InvalidSamlRequestException
      */
     public function authnRequestNeedLogin(\SAML2_AuthnRequest $authnRequest)
     {
@@ -493,7 +510,7 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
         if($isPassive && $isForce)
         {
             throw new InvalidSamlRequestException(
-                "Invalid Saml request: cannot be passive and force",
+                'Invalid Saml request: cannot be passive and force',
                 \SAML2_Const::STATUS_REQUESTER
             );
         }
@@ -507,7 +524,7 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
         if($isPassive && !$isAuthenticated)
         {
             throw new InvalidSamlRequestException(
-                "Invalid Saml request: cannot authenticate passively",
+                'Invalid Saml request: cannot authenticate passively',
                 \SAML2_Const::STATUS_NO_PASSIVE
             );
         }
@@ -518,6 +535,7 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
     /**
      * @param \SAML2_AuthnRequest $authnRequest
      * @return \SAML2_Response
+     * @throws \Exception
      */
     protected function buildAuthnResponse(\SAML2_AuthnRequest $authnRequest)
     {
@@ -525,12 +543,17 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
 
         $authnResponseBuilder = new AuthnResponseBuilder();
 
+        $state = $this->stateHandler->get();
+
         $assertionBuilder = new AssertionBuilder();
         $assertionBuilder
             ->setNotOnOrAfter(new \DateInterval('PT5M'))
             ->setSessionNotOnOrAfter(new \DateInterval('P1D'))
             ->setIssuer($this->identityProvider->getEntityId())
-            ->setNameId($this->stateHandler->get()->getUserName(), \SAML2_Const::NAMEFORMAT_BASIC);
+            ->setNameId($state->getUserName(), $serviceProvider->getNameIdFormat(), $serviceProvider->getNameQualifier(), $authnRequest->getIssuer())
+            ->setInResponseTo($authnRequest->getId())
+            ->setRecipient($serviceProvider->getAssertionConsumerUrl())
+            ->setAuthnContext($state->getAuthnContext());
 
         $authnResponseBuilder
             ->setStatus(\SAML2_Const::STATUS_SUCCESS)

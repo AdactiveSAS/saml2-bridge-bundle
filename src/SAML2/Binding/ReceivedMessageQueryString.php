@@ -33,7 +33,7 @@ final class ReceivedMessageQueryString
     const PARAMETER_SIGNATURE_ALGORITHM = 'SigAlg';
     const PARAMETER_RELAY_STATE = 'RelayState';
 
-    protected static $samlParameters = [
+    private static $samlParameters = [
         self::PARAMETER_REQUEST,
         self::PARAMETER_RESPONSE,
         self::PARAMETER_SIGNATURE,
@@ -44,31 +44,33 @@ final class ReceivedMessageQueryString
     /**
      * @var string
      */
-    protected $samlMessage;
+    private $samlMessage;
 
     /**
      * @var string|null
      */
-    protected $signature;
+    private $signature;
 
     /**
      * @var string|null
      */
-    protected $signatureAlgorithm;
+    private $signatureAlgorithm;
 
     /**
      * @var string|null
      */
-    protected $relayState;
+    private $relayState;
 
-    protected function __construct($samlMessage)
+    private function __construct($samlMessage)
     {
         $this->samlMessage = $samlMessage;
     }
-    
+
     /**
      * @param string $query
      * @return ReceivedMessageQueryString
+     * @throws \AdactiveSas\Saml2BridgeBundle\SAML2\Binding\Exception\InvalidRequestException
+     * @throws \AdactiveSas\Saml2BridgeBundle\SAML2\Binding\Exception\InvalidReceivedMessageQueryStringException
      *
      * @SuppressWarnings(PHPMD.CyclomaticComplexity) Extensive validation
      * @SuppressWarnings(PHPMD.NPathComplexity) Extensive validation
@@ -94,7 +96,7 @@ final class ReceivedMessageQueryString
 
             list($key, $value) = explode('=', $queryParameter, 2);
 
-            if (!in_array($key, self::$samlParameters)) {
+            if (!in_array($key, self::$samlParameters, true)) {
                 continue;
             }
 
@@ -175,6 +177,7 @@ final class ReceivedMessageQueryString
 
     /**
      * @return string
+     * @throws \AdactiveSas\Saml2BridgeBundle\Exception\LogicException
      */
     public function getSignedQueryString()
     {
@@ -205,6 +208,7 @@ final class ReceivedMessageQueryString
 
     /**
      * @return string
+     * @throws \AdactiveSas\Saml2BridgeBundle\SAML2\Binding\Exception\InvalidRequestException
      */
     public function getDecodedSamlRequest()
     {
@@ -232,6 +236,7 @@ final class ReceivedMessageQueryString
 
     /**
      * @return string
+     * @throws \AdactiveSas\Saml2BridgeBundle\Exception\RuntimeException
      */
     public function getDecodedSignature()
     {

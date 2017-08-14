@@ -47,6 +47,11 @@ class SamlState
     protected $originalLogoutResponse;
 
     /**
+     * @var null|string
+     */
+    protected $authnContext = \SAML2_Const::AC_UNSPECIFIED;
+
+    /**
      * SamlState constructor.
      */
     public function __construct()
@@ -203,6 +208,24 @@ class SamlState
     public function setOriginalLogoutResponse(Response $originalLogoutResponse = null)
     {
         $this->originalLogoutResponse = $originalLogoutResponse;
+        return $this;
+    }
+
+    /**
+     * @return null|string
+     */
+    public function getAuthnContext()
+    {
+        return $this->authnContext;
+    }
+
+    /**
+     * @param null|string $authnContext
+     * @return SamlState
+     */
+    public function setAuthnContext($authnContext)
+    {
+        $this->authnContext = $authnContext;
         return $this;
     }
 }

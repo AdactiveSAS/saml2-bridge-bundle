@@ -18,6 +18,7 @@
 
 namespace AdactiveSas\Saml2BridgeBundle\Tests\Functional;
 
+use AdactiveSas\Saml2BridgeBundle\SAML2\SAML2_Const;
 use Symfony\Component\DomCrawler\Crawler;
 
 class SingleSignOnTest extends WebTestCase
@@ -91,11 +92,15 @@ class SingleSignOnTest extends WebTestCase
         $subjectNotOnOrAfter->setTimestamp($issueInstant->getTimestamp() + 24*3600);
 
         $expectedResponseXmlString = $this->renderTemplate("/SingleSignOn/response_not_signed.xml.twig", [
-            "responseID" => $rootAttributes["ID"],
-            "assertionID" => $assertionAttributes["ID"],
-            "issueInstant" => gmdate('Y-m-d\TH:i:s\Z', $issueInstant->getTimestamp()),
-            "sessionNotOnOrAfter" => gmdate('Y-m-d\TH:i:s\Z', $sessionNotOnOrAfter->getTimestamp()),
-            "subjectNotOnOrAfter" => gmdate('Y-m-d\TH:i:s\Z', $subjectNotOnOrAfter->getTimestamp()),
+            'responseID' => $rootAttributes["ID"],
+            'assertionID' => $assertionAttributes["ID"],
+            'issueInstant' => gmdate('Y-m-d\TH:i:s\Z', $issueInstant->getTimestamp()),
+            'sessionNotOnOrAfter' => gmdate('Y-m-d\TH:i:s\Z', $sessionNotOnOrAfter->getTimestamp()),
+            'subjectNotOnOrAfter' => gmdate('Y-m-d\TH:i:s\Z', $subjectNotOnOrAfter->getTimestamp()),
+            'authnContext' => SAML2_Const::AC_PREVIOUS_SESSION,
+            'spNameQualifier' => 'https://test.other.fake/metadata',
+            'inResponseTo' => '_b8d22130-07fe-0135-42da-6dae1046881e',
+            'recipient' => 'https://test.other.fake/saml/acs'
         ]);
 
         $this->assertXmlStringEqualsXmlString($expectedResponseXmlString, $responseXmlString);
