@@ -57,52 +57,16 @@ class ServiceProvider extends \SAML2_Configuration_ServiceProvider
     /**
      * @return string|null
      */
-    public function getNameIdFormat(){
-        return $this->get('nameIdFormat');
-    }
-    /**
-     * @return string|null
-     */
     public function getNameIdValue(){
         return $this->get('nameIdValue');
     }
 
     /**
-     * @return string|null
-     */
-    public function getAttributes(){
-        return $this->get('attributes');
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getNameQualifier(){
-        return $this->get('NameQualifier');
-    }
-
-    /**
      * @return bool
      */
-    public function isAuthnRequestSignRequired()
+    public function wantSignedAuthnRequest()
     {
-        return $this->get('signAuthnRequestEnable', true);
-    }
-
-    /**
-     * @return bool
-     */
-    public function isResponseSign()
-    {
-        return $this->get('signResponse', true);
-    }
-
-    /**
-     * @return bool
-     */
-    public function isAssertionSign()
-    {
-        return $this->get('signAssertion', false);
+        return $this->get('wantSignedAuthnRequest', true);
     }
 
     /**

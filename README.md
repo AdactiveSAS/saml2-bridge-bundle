@@ -128,9 +128,9 @@ class SamlServiceProviderRepository implements ServiceProviderRepository
                     return $user->getEmailCanonical();
                 },
                 "NameQualifier" => 'test.fake',
-                "signAuthnRequestEnable" => true,
-                "signResponse" => true,
-                "signAssertion" => false,
+                "wantSignedAuthnRequest" => true,
+                "wantSignedAuthnResponse" => true,
+                "wantSignedAssertions" => false,
                 "attributes" => [
                     'User.Email' => function (UserInterface $user) {
                         /** @var User $user */
@@ -212,9 +212,9 @@ $this->spMap["https://slack.com"] = new ServiceProvider(
             return $user->getEmailCanonical();
         },
         "NameQualifier" => "$slackTeamName.slack.com",
-        "signAuthnRequestEnable" => true,
-        "signResponse" => true,
-        "signAssertion" => false,
+        "wantSignedAuthnRequest" => true,
+        "wantSignedAuthnResponse" => true,
+        "wantSignedAssertions" => false,
         "attributes" => [
             'User.Email' => function (UserInterface $user) {
                 /** @var User $user */
@@ -276,9 +276,9 @@ $this->spMap["https://$freshdeskAccountName.freshdesk.com"] = new ServiceProvide
             return $user->getEmailCanonical();
         },
         "NameQualifier" => "$freshdeskAccountName.freshdesk.com",
-        "signAuthnRequestEnable" => false,
-        "signResponse" => false,
-        "signAssertion" => true,
+        "wantSignedAuthnRequest" => false,
+        "wantSignedAuthnResponse" => false,
+        "wantSignedAssertions" => true,
         "attributes" => [
             'email' => function (UserInterface $user) {
                 /** @var User $user */

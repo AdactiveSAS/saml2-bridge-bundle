@@ -159,7 +159,8 @@ class AssertionBuilder
     }
 
     /**
-     * @param array $attributes
+     * @param string $nameFormat
+     *
      * @return $this
      */
     public function setAttributesNameFormat($nameFormat = \SAML2_Const::NAMEFORMAT_UNSPECIFIED){
@@ -238,28 +239,6 @@ class AssertionBuilder
     public function setIssuer($issuer)
     {
         $this->assertion->setIssuer($issuer);
-
-        return $this;
-    }
-
-    /**
-     * @param string $nameFormat
-     * @return $this
-     */
-    public function setAttributesNameFormat($nameFormat = \SAML2_Const::NAMEFORMAT_UNSPECIFIED)
-    {
-        $this->assertion->setAttributeNameFormat($nameFormat);
-
-        return $this;
-    }
-
-    /**
-     * @param string $authnContext
-     * @return $this
-     */
-    public function setAuthnContext($authnContext = \SAML2_Const::AC_PASSWORD)
-    {
-        $this->assertion->setAuthnContextClassRef($authnContext);
 
         return $this;
     }
