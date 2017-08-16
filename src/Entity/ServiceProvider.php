@@ -40,6 +40,12 @@ class ServiceProvider extends \SAML2_Configuration_ServiceProvider
     public function getNameIdFormat(){
         return $this->get('nameIdFormat');
     }
+    /**
+     * @return string|null
+     */
+    public function getNameIdValue(){
+        return $this->get('nameIdValue');
+    }
 
     /**
      * @return string|null

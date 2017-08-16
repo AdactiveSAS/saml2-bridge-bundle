@@ -519,16 +519,20 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
 
         $authnResponseBuilder = new AuthnResponseBuilder();
 
+        $user = $this->stateHandler->getUser();
+        $nameIdValue =
+            is_callable($serviceProvider->getNameIdValue())
+                ? ($serviceProvider->getNameIdValue())($user)
+                : $serviceProvider->getNameIdValue();
+
         $assertionBuilder = new AssertionBuilder();
         $assertionBuilder
             ->setNotOnOrAfter(new \DateInterval('PT5M'))
             ->setSessionNotOnOrAfter(new \DateInterval('P1D'))
             ->setIssuer($this->hostedEntities->getIdentityProvider()->getEntityId())
-            ->setNameId($this->stateHandler->get()->getUserName(), $serviceProvider->getNameIdFormat(), $serviceProvider->getNameQualifier(), $authnRequest->getIssuer())
+            ->setNameId($nameIdValue, $serviceProvider->getNameIdFormat(), $serviceProvider->getNameQualifier(), $authnRequest->getIssuer())
             ->setSubjectConfirmation(\SAML2_Const::CM_BEARER, $authnRequest->getId(), new \DateInterval('PT5M'), $serviceProvider->getAssertionConsumerUrl())
             ->setAuthnContext('urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport');
-
-        $user = $this->stateHandler->getUser();
         foreach ($serviceProvider->getAttributes() as $attributeName => $attributeCallback) {
             $assertionBuilder->setAttribute($attributeName, $attributeCallback($user));
         }

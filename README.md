@@ -120,6 +120,10 @@ class SamlServiceProviderRepository implements ServiceProviderRepository
                 "singleLogoutUrl" => "https://test.fake/saml/sls",
                 "singleLogoutBinding" => \SAML2_Const::BINDING_HTTP_REDIRECT,
                 "nameIdFormat" => \SAML2_Const::NAMEID_PERSISTENT,
+                "nameIdValue" => function (UserInterface $user) {
+                    /** @var User $user */
+                    return $user->getEmailCanonical();
+                },
                 "NameQualifier" => 'test.fake',
                 "signAuthnRequestEnable" => true,
                 "signResponse" => true,
@@ -200,6 +204,10 @@ $this->spMap["https://slack.com"] = new ServiceProvider(
         "singleLogoutUrl" => "https://$slackTeamName.slack.com/sso/saml/logout",
         "singleLogoutBinding" => \SAML2_Const::BINDING_HTTP_REDIRECT,
         "nameIdFormat" => \SAML2_Const::NAMEID_PERSISTENT,
+        "nameIdValue" => function (UserInterface $user) {
+            /** @var User $user */
+            return $user->getEmailCanonical();
+        },
         "NameQualifier" => "$slackTeamName.slack.com",
         "signAuthnRequestEnable" => true,
         "signResponse" => true,
@@ -260,6 +268,10 @@ $this->spMap["https://$freshdeskAccountName.freshdesk.com"] = new ServiceProvide
         "singleLogoutUrl" => "https://$freshdeskAccountName.freshdesk.com/logout/saml",
         "singleLogoutBinding" => \SAML2_Const::BINDING_HTTP_REDIRECT,
         "nameIdFormat" => 'urn:oasis:names:tc:SAML:2.0:nameid-format:email',
+        "nameIdValue" => function (UserInterface $user) {
+            /** @var User $user */
+            return $user->getEmailCanonical();
+        },
         "NameQualifier" => "$freshdeskAccountName.freshdesk.com",
         "signAuthnRequestEnable" => false,
         "signResponse" => false,
