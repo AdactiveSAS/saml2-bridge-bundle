@@ -19,6 +19,8 @@
 namespace AdactiveSas\Saml2BridgeBundle\Entity;
 
 
+use AdactiveSas\Saml2BridgeBundle\SAML2\SAML2_Const;
+
 class HostedIdentityProvider extends IdentityProvider
 {
     /**
@@ -35,6 +37,13 @@ class HostedIdentityProvider extends IdentityProvider
     public function getLogoutUrl()
     {
         return $this->get('logoutUrl');
+    }
+
+    /**
+     * @return string
+     */
+    public function getAuthnContext(){
+        return $this->get('authnContext', SAML2_Const::AC_UNSPECIFIED);
     }
 
     /**

@@ -41,6 +41,8 @@ class HttpPostBinding implements HttpBindingInterface
 
     /**
      * HttpPostBinding constructor.
+     * @param FormFactoryInterface $formFactory
+     * @param EngineInterface $templateEngine
      */
     public function __construct(FormFactoryInterface $formFactory, EngineInterface $templateEngine)
     {
@@ -51,6 +53,8 @@ class HttpPostBinding implements HttpBindingInterface
     /**
      * @param \SAML2_StatusResponse $response
      * @return Response
+     * @throws \Symfony\Component\OptionsResolver\Exception\InvalidOptionsException
+     * @throws \RuntimeException
      */
     public function getSignedResponse(\SAML2_StatusResponse $response)
     {
@@ -67,15 +71,25 @@ class HttpPostBinding implements HttpBindingInterface
     /**
      * @param \SAML2_StatusResponse $response
      * @return Response
+     * @throws \RuntimeException
+     * @throws \Symfony\Component\OptionsResolver\Exception\InvalidOptionsException
      */
     public function getUnsignedResponse(\SAML2_StatusResponse $response)
     {
-        throw new UnsupportedBindingException("Unsupported binding: unsigned POST Response is not supported at the moment");
+        $form = $this->getUnsignedResponseForm($response);
+
+        return $this->templateEngine->renderResponse(
+            "AdactiveSasSaml2BridgeBundle:Binding:post.html.twig",
+            [
+                "form" => $form->createView(),
+            ]
+        );
     }
 
     /**
      * @param \SAML2_Request $request
      * @return Response
+     * @throws \AdactiveSas\Saml2BridgeBundle\SAML2\Binding\Exception\UnsupportedBindingException
      */
     public function getSignedRequest(\SAML2_Request $request)
     {
@@ -85,6 +99,7 @@ class HttpPostBinding implements HttpBindingInterface
     /**
      * @param \SAML2_Request $request
      * @return Response
+     * @throws \AdactiveSas\Saml2BridgeBundle\SAML2\Binding\Exception\UnsupportedBindingException
      */
     public function getUnsignedRequest(\SAML2_Request $request)
     {
@@ -94,6 +109,7 @@ class HttpPostBinding implements HttpBindingInterface
     /**
      * @param Request $request
      * @return \SAML2_AuthnRequest
+     * @throws \AdactiveSas\Saml2BridgeBundle\SAML2\Binding\Exception\UnsupportedBindingException
      */
     public function receiveSignedAuthnRequest(Request $request)
     {
@@ -102,7 +118,19 @@ class HttpPostBinding implements HttpBindingInterface
 
     /**
      * @param Request $request
+     * @return \SAML2_AuthnRequest
+     */
+    public function receiveAuthnRequest(Request $request)
+    {
+        throw new UnsupportedBindingException(
+            "Unsupported binding: signed POST AuthnRequest is not supported at the moment"
+        );
+    }
+
+    /**
+     * @param Request $request
      * @return \SAML2_LogoutRequest
+     * @throws \AdactiveSas\Saml2BridgeBundle\SAML2\Binding\Exception\UnsupportedBindingException
      */
     public function receiveSignedLogoutRequest(Request $request)
     {
@@ -112,6 +140,7 @@ class HttpPostBinding implements HttpBindingInterface
     /**
      * @param Request $request
      * @return \SAML2_AuthnRequest
+     * @throws \AdactiveSas\Saml2BridgeBundle\SAML2\Binding\Exception\UnsupportedBindingException
      */
     public function receiveUnsignedAuthnRequest(Request $request)
     {
@@ -121,6 +150,7 @@ class HttpPostBinding implements HttpBindingInterface
     /**
      * @param Request $request
      * @return \SAML2_LogoutRequest
+     * @throws \AdactiveSas\Saml2BridgeBundle\SAML2\Binding\Exception\UnsupportedBindingException
      */
     public function receiveUnsignedLogoutRequest(Request $request)
     {
@@ -130,6 +160,7 @@ class HttpPostBinding implements HttpBindingInterface
     /**
      * @param Request $request
      * @return \SAML2_Message
+     * @throws \AdactiveSas\Saml2BridgeBundle\SAML2\Binding\Exception\UnsupportedBindingException
      */
     public function receiveSignedMessage(Request $request)
     {
@@ -139,6 +170,7 @@ class HttpPostBinding implements HttpBindingInterface
     /**
      * @param Request $request
      * @return \SAML2_Message
+     * @throws \AdactiveSas\Saml2BridgeBundle\SAML2\Binding\Exception\UnsupportedBindingException
      */
     public function receiveUnsignedMessage(Request $request)
     {
@@ -148,19 +180,43 @@ class HttpPostBinding implements HttpBindingInterface
     /**
      * @param \SAML2_StatusResponse $response
      * @return \Symfony\Component\Form\FormInterface
+     * @throws \Symfony\Component\OptionsResolver\Exception\InvalidOptionsException
      */
     public function getSignedResponseForm(\SAML2_StatusResponse $response)
     {
-        if($response->getDestination() === null){
+        return $this->getResponseForm($response, true);
+    }
+
+    /**
+     * @param \SAML2_StatusResponse $response
+     * @return \Symfony\Component\Form\FormInterface
+     * @throws \Symfony\Component\OptionsResolver\Exception\InvalidOptionsException
+     */
+    public function getUnsignedResponseForm(\SAML2_StatusResponse $response)
+    {
+        return $this->getResponseForm($response, false);
+    }
+
+    /**
+     * @param \SAML2_StatusResponse $response
+     * @param $isSign
+     * @return \Symfony\Component\Form\FormInterface
+     * @throws \Symfony\Component\OptionsResolver\Exception\InvalidOptionsException
+     */
+    protected function getResponseForm(\SAML2_StatusResponse $response, $isSign)
+    {
+        if ($response->getDestination() === null) {
             throw new LogicException('Invalid destination');
         }
 
+        $xmlDom = $isSign ? $response->toSignedXML() : $response->toUnsignedXML();
+
         $data = [
-            'SAMLResponse' => base64_encode($response->toSignedXML()->ownerDocument->saveXML()),
+            'SAMLResponse' => base64_encode($xmlDom->ownerDocument->saveXML()),
         ];
 
         $hasRelayState = !empty($response->getRelayState());
-        if($hasRelayState){
+        if ($hasRelayState) {
             $data["RelayState"] = $response->getRelayState();
         }
 
@@ -170,33 +226,9 @@ class HttpPostBinding implements HttpBindingInterface
             $data,
             [
             "has_relay_state"=> $hasRelayState,
-            "destination" => $response->getDestination()
+            "destination" => $response->getDestination(),
             ]
         );
     }
 
-    /**
-     * @param \SAML2_StatusResponse $response
-     * @return \Symfony\Component\Form\FormInterface
-     */
-    public function getUnsignedResponseForm(\SAML2_StatusResponse $response)
-    {
-        $data = [
-            'SAMLResponse' => base64_encode($response->toUnsignedXML()->ownerDocument->saveXML()),
-        ];
-
-        $hasRelayState = !empty($response->getRelayState());
-        if($hasRelayState){
-            $data["RelayState"] = $response->getRelayState();
-        }
-
-        return $this->formFactory->create(
-            SAML2ResponseForm::class,
-            $data,
-            [
-            "has_relay_state"=> $hasRelayState,
-            "destination" => $response->getDestination()
-            ]
-        );
     }
-}

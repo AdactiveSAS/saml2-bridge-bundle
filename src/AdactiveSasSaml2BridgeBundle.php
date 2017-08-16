@@ -20,12 +20,15 @@
 
 namespace AdactiveSas\Saml2BridgeBundle;
 
+use AdactiveSas\Saml2BridgeBundle\SAML2\BridgeContainer;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 class AdactiveSasSaml2BridgeBundle extends Bundle
 {
     public function boot()
     {
+        parent::boot();
+        /** @var BridgeContainer $bridgeContainer */
         $bridgeContainer = $this->container->get('adactive_sas_saml2_bridge.container');
         \SAML2_Compat_ContainerSingleton::setContainer($bridgeContainer);
     }
