@@ -38,5 +38,8 @@
         <service id="adactive_sas_saml2_bridge.logout.handler" class="AdactiveSas\Saml2BridgeBundle\Security\SamlLogoutHandler">
             <argument type="service" id="event_dispatcher" />
         </service>
+        <service id="adactive_sas_saml2_bridge.hosted.identity_provider" class="AdactiveSas\Saml2BridgeBundle\Entity\IdentityProvider">
+            <factory service="adactive_sas_saml2_bridge.configuration.hosted_entities" method="getIdentityProvider" />
+        </service>
     </services>
 </container>
