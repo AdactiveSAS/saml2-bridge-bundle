@@ -14,3 +14,6 @@ adactive_sas_saml2_bridge:
             logout_route: logout
             public_key: '%kernel.root_dir%/AcmeBundle/certificates/idp.crt'
             private_key: '%kernel.root_dir%/AcmeBundle/certificates/idp.pem'
+            signing:
+              authn_request: false
+              logout_request: false
