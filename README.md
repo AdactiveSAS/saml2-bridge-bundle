@@ -131,6 +131,8 @@ class SamlServiceProviderRepository implements ServiceProviderRepository
                 "wantSignedAuthnRequest" => true,
                 "wantSignedAuthnResponse" => true,
                 "wantSignedAssertions" => false,
+                "wantSignedLogoutRequest" => false,
+                "wantSignedLogoutResponse" => false,
                 "attributes" => [
                     'User.Email' => function (UserInterface $user) {
                         /** @var User $user */
