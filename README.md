@@ -1,5 +1,8 @@
 # SAML2 Bridge Bundle
 
+[![Coverage Status](https://coveralls.io/repos/github/AdactiveSAS/saml2-bridge-bundle/badge.svg?branch=master)](https://coveralls.io/github/AdactiveSAS/saml2-bridge-bundle?branch=master)
+[![Build Status](https://travis-ci.org/AdactiveSAS/saml2-bridge-bundle.svg?branch=master)](https://travis-ci.org/AdactiveSAS/saml2-bridge-bundle)
+
 A bundle that adds SAML capabilities to your application using [simplesamlphp/saml2][1] highly inspired by 
 [OpenConext/Stepup-saml-bundle][2]
 
@@ -125,9 +128,11 @@ class SamlServiceProviderRepository implements ServiceProviderRepository
                     return $user->getEmailCanonical();
                 },
                 "NameQualifier" => 'test.fake',
-                "signAuthnRequestEnable" => true,
-                "signResponse" => true,
-                "signAssertion" => false,
+                "wantSignedAuthnRequest" => true,
+                "wantSignedAuthnResponse" => true,
+                "wantSignedAssertions" => false,
+                "wantSignedLogoutRequest" => false,
+                "wantSignedLogoutResponse" => false,
                 "attributes" => [
                     'User.Email' => function (UserInterface $user) {
                         /** @var User $user */
@@ -209,9 +214,9 @@ $this->spMap["https://slack.com"] = new ServiceProvider(
             return $user->getEmailCanonical();
         },
         "NameQualifier" => "$slackTeamName.slack.com",
-        "signAuthnRequestEnable" => true,
-        "signResponse" => true,
-        "signAssertion" => false,
+        "wantSignedAuthnRequest" => true,
+        "wantSignedAuthnResponse" => true,
+        "wantSignedAssertions" => false,
         "attributes" => [
             'User.Email' => function (UserInterface $user) {
                 /** @var User $user */
@@ -273,9 +278,9 @@ $this->spMap["https://$freshdeskAccountName.freshdesk.com"] = new ServiceProvide
             return $user->getEmailCanonical();
         },
         "NameQualifier" => "$freshdeskAccountName.freshdesk.com",
-        "signAuthnRequestEnable" => false,
-        "signResponse" => false,
-        "signAssertion" => true,
+        "wantSignedAuthnRequest" => false,
+        "wantSignedAuthnResponse" => false,
+        "wantSignedAssertions" => true,
         "attributes" => [
             'email' => function (UserInterface $user) {
                 /** @var User $user */
