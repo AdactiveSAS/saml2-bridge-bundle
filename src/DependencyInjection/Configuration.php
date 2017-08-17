@@ -84,6 +84,7 @@ class Configuration implements ConfigurationInterface
                                     ->info('The absolute path to the private key used to sign Responses to AuthRequests with')
                                 ->end()
                                 ->arrayNode('signing')
+                                    ->addDefaultsIfNotSet()
                                     ->children()
                                         ->booleanNode("authn_request")
                                             ->defaultTrue()

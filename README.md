@@ -34,7 +34,7 @@ SAML Support is really limited, this bundle can be used to provide a basic ident
   public function registerBundles()
   {
       // ...
-      $bundles[] = AdactiveSas\Saml2BridgeBundle\AdactiveSasSaml2BridgeBundle();
+      $bundles[] = new AdactiveSas\Saml2BridgeBundle\AdactiveSasSaml2BridgeBundle();
   }
   ```
   
