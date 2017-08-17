@@ -41,34 +41,87 @@ class ServiceProvider extends \SAML2_Configuration_ServiceProvider
     /**
      * @return string|null
      */
-    public function getSingleLogoutUrl(){
+    public function getSingleLogoutUrl()
+    {
         return $this->get('singleLogoutUrl');
     }
 
     /**
      * @return string|null
      */
-    public function getSingleLogoutBinding(){
+    public function getSingleLogoutBinding()
+    {
         return $this->get('singleLogoutBinding');
     }
 
+    /**
+     * @return string|null
+     */
+    public function getNameIdValue(){
+        return $this->get('nameIdValue');
+    }
+
+    /**
+     * @return bool
+     */
+    public function wantSignedAuthnRequest()
+    {
+        return $this->get('wantSignedAuthnRequest', true);
+    }
+
+    /**
+     * @return bool
+     */
     public function wantSignedAuthnResponse()
     {
         return $this->get('wantSignedAuthnResponse', true);
     }
 
+    /**
+     * @return bool
+     */
     public function wantSignedAssertions()
     {
         return $this->get('wantSignedAssertions', true);
     }
 
+    /**
+     * @return bool
+     */
     public function wantSignedLogoutResponse()
     {
         return $this->get('wantSignedLogoutResponse', true);
     }
 
+    /**
+     * @return bool
+     */
     public function wantSignedLogoutRequest()
     {
         return $this->get('wantSignedLogoutRequest', true);
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getNameIdFormat()
+    {
+        return $this->get('nameIdFormat', \SAML2_Const::NAMEFORMAT_BASIC);
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getAttributes()
+    {
+        return $this->get('attributes', []);
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getNameQualifier()
+    {
+        return $this->get('NameQualifier');
     }
 }

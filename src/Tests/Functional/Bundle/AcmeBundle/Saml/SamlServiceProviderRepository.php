@@ -5,6 +5,7 @@ namespace AdactiveSas\Saml2BridgeBundle\Tests\Functional\Bundle\AcmeBundle\Saml;
 
 use AdactiveSas\Saml2BridgeBundle\Entity\ServiceProvider;
 use AdactiveSas\Saml2BridgeBundle\Entity\ServiceProviderRepository;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 class SamlServiceProviderRepository implements ServiceProviderRepository
 {
@@ -32,7 +33,13 @@ class SamlServiceProviderRepository implements ServiceProviderRepository
                 "assertionConsumerUrl" => "https://test.fake/saml/acs",
                 "assertionConsumerBinding" => \SAML2_Const::BINDING_HTTP_REDIRECT,
                 "singleLogoutUrl" => "https://test.fake/saml/sls",
-                "singleLogoutBinding" => \SAML2_Const::BINDING_HTTP_REDIRECT
+                "singleLogoutBinding" => \SAML2_Const::BINDING_HTTP_REDIRECT,
+                "nameIdValue" => "moroine",
+                "attributes" => [
+                    'email' => function (UserInterface $user) {
+                        return "moroine.bentefrit@gmail.com";
+                    },
+                ],
             ]
         );
         $this->spMap[static::SP_NO_SIGNING] = new ServiceProvider(
@@ -46,10 +53,17 @@ class SamlServiceProviderRepository implements ServiceProviderRepository
                 "assertionConsumerBinding" => \SAML2_Const::BINDING_HTTP_REDIRECT,
                 "singleLogoutUrl" => "https://test.other.fake/saml/sls",
                 "singleLogoutBinding" => \SAML2_Const::BINDING_HTTP_REDIRECT,
+                "wantSignedAuthnRequest" => false,
                 "wantSignedAuthnResponse" => false,
                 "wantSignedAssertions" => false,
                 "wantSignedLogoutResponse" => false,
                 "wantSignedLogoutRequest" => false,
+                "nameIdValue" => "moroine",
+                "attributes" => [
+                    'email' => function (UserInterface $user) {
+                        return "moroine.bentefrit@gmail.com";
+                    },
+                ],
             ]
         );
     }

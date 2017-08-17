@@ -34,7 +34,7 @@ SAML Support is really limited, this bundle can be used to provide a basic ident
   public function registerBundles()
   {
       // ...
-      $bundles[] = AdactiveSas\Saml2BridgeBundle\AdactiveSasSaml2BridgeBundle();
+      $bundles[] = new AdactiveSas\Saml2BridgeBundle\AdactiveSasSaml2BridgeBundle();
   }
   ```
   
@@ -53,6 +53,12 @@ adactive_sas_saml2_bridge:
             logout_route: name_of_the_route_of_the_logout_url
             public_key: %idp_public_key_file_path%
             private_key: %idp_private_key_file_path%
+```
+
+Also add logout handler.
+```yaml
+            logout:
+                handlers: [adactive_sas_saml2_bridge.logout.handler]
 ```
 The hosted configuration lists the configuration for the services (SP, IdP or both) that your application offers. SP and IdP
  functionality can be turned off and on individually through the repective `enabled` flags.
@@ -115,7 +121,36 @@ class SamlServiceProviderRepository implements ServiceProviderRepository
                 "assertionConsumerUrl" => "https://test.fake/saml/acs",
                 "assertionConsumerBinding" => \SAML2_Const::BINDING_HTTP_POST,
                 "singleLogoutUrl" => "https://test.fake/saml/sls",
-                "singleLogoutBinding" => \SAML2_Const::BINDING_HTTP_REDIRECT
+                "singleLogoutBinding" => \SAML2_Const::BINDING_HTTP_REDIRECT,
+                "nameIdFormat" => \SAML2_Const::NAMEID_PERSISTENT,
+                "nameIdValue" => function (UserInterface $user) {
+                    /** @var User $user */
+                    return $user->getEmailCanonical();
+                },
+                "NameQualifier" => 'test.fake',
+                "wantSignedAuthnRequest" => true,
+                "wantSignedAuthnResponse" => true,
+                "wantSignedAssertions" => false,
+                "wantSignedLogoutRequest" => false,
+                "wantSignedLogoutResponse" => false,
+                "attributes" => [
+                    'User.Email' => function (UserInterface $user) {
+                        /** @var User $user */
+                        return $user->getEmailCanonical();
+                    },
+                    'User.Username' => function (UserInterface $user) {
+                        /** @var User $user */
+                        return $user->getName();
+                    },
+                    'first_name' => function (UserInterface $user) {
+                        /** @var User $user */
+                        return $user->getFirstName();
+                    },
+                    'last_name' => function (UserInterface $user) {
+                        /** @var User $user */
+                        return $user->getLastName();
+                    },
+                ],
             ]
         );
     }
@@ -138,6 +173,135 @@ class SamlServiceProviderRepository implements ServiceProviderRepository
         return array_key_exists($entityId, $this->spMap);
     }
 }
+```
+
+######Slack example
+```
+$this->spMap["https://slack.com"] = new ServiceProvider(
+    [
+        /**
+         * Returns the contents of an X509 pem certificate, without the '-----BEGIN CERTIFICATE-----' and
+         * '-----END CERTIFICATE-----'.
+         *
+         * @return null|string
+         */
+        'certificateData' => 'MIIDrzCCApagAwIBAgIBADANBgkqhkiG9w0BAQ0FADBxMQswCQYDVQQGEwJ1czETMBEGA1UECAwKQ2FsaWZvcm5pYTEhMB8GA1UECgwYU2xhY2sgVGVjaG5vbG9naWVzLCBJbmMuMRIwEAYDVQQDDAlzbGFjay5jb20xFjAUBgNVBAcMDVNhbiBGcmFuY2lzY28wHhcNMTUwMzE3MDEyMzMyWhcNMjUwMzE0MDEyMzMyWjBxMQswCQYDVQQGEwJ1czETMBEGA1UECAwKQ2FsaWZvcm5pYTEhMB8GA1UECgwYU2xhY2sgVGVjaG5vbG9naWVzLCBJbmMuMRIwEAYDVQQDDAlzbGFjay5jb20xFjAUBgNVBAcMDVNhbiBGcmFuY2lzY28wggEjMA0GCSqGSIb3DQEBAQUAA4IBEAAwggELAoIBAgDB0y4ruySosz1GX/3KI1jp4oivxtnXLeMwKELrBgG+rZ8pl+UMhLG2iCp0nbnwSxXVU0ONJVI3SSzJ5VQtBHHCA4UAzse0HRaSZfBs+6urKoMLf8iusBYk62f2g/RAPjsMVcjC8B3FHyhaD9OnWSdJ7uGopmwwEhDiwf/gdS9Uw8FojYDuVprODfmj7+fgWPkGTf8TRGaHjudjuP1LMDRAz2cI0ym09jbnW8BVynSjjUrE+K9ri1uWzT2tp49OHqSgjaXkWWY6prFa9MT8jsibe02Id2i5+h0c4F892O7MybNWgF139dMGapmW4rf3GT7brLZEO4sZPwovhlj3b6U+8wIDAQABo1AwTjAdBgNVHQ4EFgQUa2YVk5yi+WMxLT/q7rokAfzyvU0wHwYDVR0jBBgwFoAUa2YVk5yi+WMxLT/q7rokAfzyvU0wDAYDVR0TBAUwAwEB/zANBgkqhkiG9w0BAQ0FAAOCAQIAUwv53vh2LkgbJbBGyRlSkjAZyybwM7pO6TtQ4SHyn366SG1lZXkc9S9u8m4kMETDquOujC/fZLiAe4f8rZ8+ZXV0f17FL/RhMDzVBv6DgDabfpXAkt+Yn+ZIThFi2D7L4jyJzZPbaf7soCu1e/Dx0CBhm/Lz2nsny6Il7rkEbDB7gBpjZODMMi/PEJ5I462JUrj+9aSZBtx2/NXIoFkLZ1B4j3UG+WJhcYMlMBim/GTimKS7yzkvfqdADmIAaO0RPYduNPds6Dyjyjbqj3XR3WwdsmTorO95UKitRGu10ImwByXo2xzQCwGNP8WuRAmWVIlisLLNEDKTnZDb38085gY=',
+
+        /**
+         * Returns the full path to the (local) file that contains the X509 pem certificate.
+         *
+         * @return null|string
+         */
+        "certificateFile" => "",
+
+        /**
+         * @return null|string
+         */
+        "entityId" => "https://slack.com",
+
+        /**
+         * @return null|bool
+         */
+        "assertionEncryptionEnabled" => true,
+
+        "assertionConsumerUrl" => "https://$slackTeamName.slack.com/sso/saml",
+        "assertionConsumerBinding" => \SAML2_Const::BINDING_HTTP_POST,
+        "singleLogoutUrl" => "https://$slackTeamName.slack.com/sso/saml/logout",
+        "singleLogoutBinding" => \SAML2_Const::BINDING_HTTP_REDIRECT,
+        "nameIdFormat" => \SAML2_Const::NAMEID_PERSISTENT,
+        "nameIdValue" => function (UserInterface $user) {
+            /** @var User $user */
+            return $user->getEmailCanonical();
+        },
+        "NameQualifier" => "$slackTeamName.slack.com",
+        "wantSignedAuthnRequest" => true,
+        "wantSignedAuthnResponse" => true,
+        "wantSignedAssertions" => false,
+        "attributes" => [
+            'User.Email' => function (UserInterface $user) {
+                /** @var User $user */
+                return $user->getEmailCanonical();
+            },
+            'User.Username' => function (UserInterface $user) {
+                /** @var User $user */
+                return $user->getName();
+            },
+            'first_name' => function (UserInterface $user) {
+                /** @var User $user */
+                return $user->getFirstName();
+            },
+            'last_name' => function (UserInterface $user) {
+                /** @var User $user */
+                return $user->getLastName();
+            },
+        ],
+    ]
+);
+
+```
+######Freshdesk example
+```
+$this->spMap["https://$freshdeskAccountName.freshdesk.com"] = new ServiceProvider(
+    [
+        /**
+         * Returns the contents of an X509 pem certificate, without the '-----BEGIN CERTIFICATE-----' and
+         * '-----END CERTIFICATE-----'.
+         *
+         * @return null|string
+         */
+        'certificateData' => '',
+
+        /**
+         * Returns the full path to the (local) file that contains the X509 pem certificate.
+         *
+         * @return null|string
+         */
+        "certificateFile" => "",
+
+        /**
+         * @return null|string
+         */
+        "entityId" => "https://$freshdeskAccountName.freshdesk.com",
+
+        /**
+         * @return null|bool
+         */
+        "assertionEncryptionEnabled" => false,
+
+        "assertionConsumerUrl" => "https://$freshdeskAccountName.freshdesk.com/login/saml",
+        "assertionConsumerBinding" => \SAML2_Const::BINDING_HTTP_POST,
+        "singleLogoutUrl" => "https://$freshdeskAccountName.freshdesk.com/logout/saml",
+        "singleLogoutBinding" => \SAML2_Const::BINDING_HTTP_REDIRECT,
+        "nameIdFormat" => 'urn:oasis:names:tc:SAML:2.0:nameid-format:email',
+        "nameIdValue" => function (UserInterface $user) {
+            /** @var User $user */
+            return $user->getEmailCanonical();
+        },
+        "NameQualifier" => "$freshdeskAccountName.freshdesk.com",
+        "wantSignedAuthnRequest" => false,
+        "wantSignedAuthnResponse" => false,
+        "wantSignedAssertions" => true,
+        "attributes" => [
+            'email' => function (UserInterface $user) {
+                /** @var User $user */
+                return $user->getEmailCanonical();
+            },
+            'name' => function (UserInterface $user) {
+                /** @var User $user */
+                return $user->getName();
+            },
+            'given_name' => function (UserInterface $user) {
+                /** @var User $user */
+                return $user->getFirstName();
+            },
+            'family_name' => function (UserInterface $user) {
+                /** @var User $user */
+                return $user->getLastName();
+            },
+        ],
+    ]
+);
+
 ```
 
 > Note: Keep in mind that this is a example, you may retrieve ServiceProviders from database
