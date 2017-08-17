@@ -575,7 +575,7 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
             ->setSessionNotOnOrAfter(new \DateInterval('P1D'))
             ->setIssuer($this->identityProvider->getEntityId())
             ->setNameId($nameIdValue, $serviceProvider->getNameIdFormat(), $serviceProvider->getNameQualifier(), $authnRequest->getIssuer())
-            //->setSubjectConfirmation(\SAML2_Const::CM_BEARER, $authnRequest->getId(), new \DateInterval('PT5M'), $serviceProvider->getAssertionConsumerUrl())
+            ->setConfirmationMethod(SAML2_Const::CM_BEARER)
             ->setInResponseTo($authnRequest->getId())
             ->setRecipient($serviceProvider->getAssertionConsumerUrl())
             ->setAuthnContext($state->getAuthnContext());

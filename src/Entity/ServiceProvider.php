@@ -114,7 +114,7 @@ class ServiceProvider extends \SAML2_Configuration_ServiceProvider
      */
     public function getAttributes()
     {
-        return $this->get('attributes');
+        return $this->get('attributes', []);
     }
 
     /**

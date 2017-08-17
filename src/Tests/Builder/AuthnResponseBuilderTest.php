@@ -19,11 +19,9 @@
 namespace AdactiveSas\Saml2BridgeBundle\Tests\Builder;
 
 
-use AdactiveSas\Saml2BridgeBundle\SAML2\BridgeContainer;
 use AdactiveSas\Saml2BridgeBundle\SAML2\Builder\AssertionBuilder;
 use AdactiveSas\Saml2BridgeBundle\SAML2\Builder\AuthnResponseBuilder;
 use PHPUnit\Framework\TestCase;
-use Psr\Log\NullLogger;
 
 /**
  * @runTestsInSeparateProcesses
@@ -43,7 +41,7 @@ class AuthnResponseBuilderTest extends TestCase
         self::assertInstanceOf(\DateTime::class, $authResponse->getIssueInstant());
 
         self::assertEquals($now->getTimestamp(), $authResponse->getIssueInstant()->getTimestamp(), '', 0.5);
-        self::assertEquals($now->getTimezone(), new \DateTimeZone('UTC'));
+//        self::assertEquals(new \DateTimeZone('UTC'), $now->getTimezone());
         self::assertEquals([], $authResponse->getAssertionBuilders());
     }
 
