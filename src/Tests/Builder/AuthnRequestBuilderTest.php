@@ -39,7 +39,6 @@ class AuthnRequestBuilderTest extends TestCase
         self::assertInstanceOf(\DateTime::class, $authResponse->getIssueInstant());
 
         self::assertEquals($now->getTimestamp(), $authResponse->getIssueInstant()->getTimestamp(), '', 0.5);
-//        self::assertEquals(new \DateTimeZone('UTC'), $now->getTimezone());
     }
 
     public function testConstructorWithDateTime()
