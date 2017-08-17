@@ -565,7 +565,7 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
         $user = $this->stateHandler->getUser();
         $nameIdValue =
             is_callable($serviceProvider->getNameIdValue())
-                ? ($serviceProvider->getNameIdValue())($user)
+                ? call_user_func($serviceProvider->getNameIdValue(), $user)
                 : $serviceProvider->getNameIdValue();
 
 
