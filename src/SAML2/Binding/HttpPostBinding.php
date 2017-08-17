@@ -116,6 +116,7 @@ class HttpPostBinding implements HttpBindingInterface
         throw new UnsupportedBindingException("Unsupported binding: signed POST AuthnRequest is not supported at the moment");
     }
 
+
     /**
      * @param Request $request
      * @return \SAML2_LogoutRequest
@@ -214,9 +215,10 @@ class HttpPostBinding implements HttpBindingInterface
             SAML2ResponseForm::class,
             $data,
             [
-                "has_relay_state" => $hasRelayState,
-                "destination" => $response->getDestination(),
+            "has_relay_state"=> $hasRelayState,
+            "destination" => $response->getDestination(),
             ]
         );
     }
-}
+
+    }

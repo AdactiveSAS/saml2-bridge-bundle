@@ -127,7 +127,7 @@ class SingleSignOnTest extends WebTestCase
 
     protected function createAuthenticatedClient($username)
     {
-        $client = $this->createClient(array('test_case' => 'AcmeBundle', 'root_config' => 'config_no_signing.yml'));
+        $client = $this->createClient(array('test_case' => 'AcmeBundle', 'root_config' => 'config.yml'));
         $client->request('GET', '/login');
 
         $form = $client->getCrawler()->selectButton('login')->form();
