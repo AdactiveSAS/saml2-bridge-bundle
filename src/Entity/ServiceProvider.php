@@ -55,6 +55,21 @@ class ServiceProvider extends \SAML2_Configuration_ServiceProvider
     }
 
     /**
+     * @return string|null
+     */
+    public function getNameIdValue(){
+        return $this->get('nameIdValue');
+    }
+
+    /**
+     * @return bool
+     */
+    public function wantSignedAuthnRequest()
+    {
+        return $this->get('wantSignedAuthnRequest', true);
+    }
+
+    /**
      * @return bool
      */
     public function wantSignedAuthnResponse()
@@ -99,7 +114,7 @@ class ServiceProvider extends \SAML2_Configuration_ServiceProvider
      */
     public function getAttributes()
     {
-        return $this->get('attributes');
+        return $this->get('attributes', []);
     }
 
     /**

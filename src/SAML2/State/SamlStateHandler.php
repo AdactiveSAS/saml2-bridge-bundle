@@ -11,6 +11,7 @@ use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationChecker;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Workflow\DefinitionBuilder;
 use Symfony\Component\Workflow\MarkingStore\SingleStateMarkingStore;
 use Symfony\Component\Workflow\Transition;
@@ -20,14 +21,14 @@ class SamlStateHandler implements EventSubscriberInterface
 {
     const SESSION_NAME_ATTRIBUTE = "adactive_sas_saml2_bridge.state";
 
-    const TRANSITION_SSO_START = "sso_start";
+    const TRANSITION_SSO_START = "sso_transition_start";
     const TRANSITION_SSO_START_AUTHENTICATE = "sso_authenticate_start";
     const TRANSITION_SSO_AUTHENTICATE_SUCCESS = "sso_authenticate_success";
     const TRANSITION_SSO_AUTHENTICATE_FAIL = "sso_authenticate_fail";
     const TRANSITION_SSO_RESPOND = "sso_respond";
     const TRANSITION_SSO_RESUME = "sso_resume";
     
-    const TRANSITION_SLS_START = "sls_start";
+    const TRANSITION_SLS_START = "sls_transition_start";
     const TRANSITION_SLS_START_DISPATCH = "sls_start_dispatch";
     const TRANSITION_SLS_END_DISPATCH = "sls_end_dispatch";
     const TRANSITION_SLS_START_PROPAGATE = "sls_start_propagate";
@@ -305,6 +306,10 @@ class SamlStateHandler implements EventSubscriberInterface
      */
     public function can($transition)
     {
+        if ($this->get() === null) {
+            return false;
+        }
+
         return $this->has() && $this->get()->getRequest() !== null && $this->workflow->can($this->get(), $transition);
     }
 
@@ -347,5 +352,13 @@ class SamlStateHandler implements EventSubscriberInterface
     {
         return $this->tokenStorage->getToken() === null ||
             !$this->authorizationChecker->isGranted('IS_AUTHENTICATED_REMEMBERED');
+    }
+
+    /**
+     * @return UserInterface
+     */
+    public function getUser()
+    {
+        return $this->tokenStorage->getToken()->getUser();
     }
 }

@@ -110,7 +110,12 @@ EOT;
         self::assertTrue($query->isSigned());
         self::assertEquals($decodedSignature, $query->getSignature());
         self::assertEquals(base64_decode($decodedSignature), $query->getDecodedSignature());
-        self::assertEquals("SAMLRequest=$samlMessage&RelayState=$relayState&SigAlg=$signAlg", $query->getSignedQueryString());
+        self::assertEquals(
+            "SAMLRequest=".urlencode($decodedSamlMessage).
+            "&RelayState=".urlencode($decodedRelayState).
+            "&SigAlg=".urlencode($decodedSignatureAlg),
+            $query->getSignedQueryString()
+        );
         self::assertEquals($decodedSignatureAlg, $query->getSignatureAlgorithm());
         self::assertTrue($query->hasRelayState());
         self::assertEquals($decodedRelayState, $query->getRelayState());

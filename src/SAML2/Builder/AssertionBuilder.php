@@ -159,6 +159,17 @@ class AssertionBuilder
     }
 
     /**
+     * @param string $nameFormat
+     *
+     * @return $this
+     */
+    public function setAttributesNameFormat($nameFormat = \SAML2_Const::NAMEFORMAT_UNSPECIFIED){
+        $this->assertion->setAttributeNameFormat($nameFormat);
+
+        return $this;
+    }
+
+    /**
      * @param string $name
      * @param $value
      * @return AssertionBuilder
@@ -166,7 +177,7 @@ class AssertionBuilder
     public function setAttribute($name, $value)
     {
         $attributes = $this->assertion->getAttributes();
-        $attributes[$name] = $value;
+        $attributes[$name] = [$value];
 
         return $this->setAttributes($attributes);
     }
@@ -193,6 +204,35 @@ class AssertionBuilder
     }
 
     /**
+     * @return $this
+     */
+    public function setSubjectConfirmation($method = \SAML2_Const::CM_BEARER, $inResponseTo, \DateInterval $notOnOrAfter, $recipient) {
+        $subjectConfirmationData = new \SAML2_XML_saml_SubjectConfirmationData();
+        $subjectConfirmationData->InResponseTo = $inResponseTo;
+
+        $endTime = clone $this->issueInstant;
+        $endTime->add($notOnOrAfter);
+        $subjectConfirmationData->NotOnOrAfter = $endTime->getTimestamp();
+
+        $subjectConfirmationData->Recipient = $recipient;
+
+        $subjectConformation = new \SAML2_XML_saml_SubjectConfirmation();
+        $subjectConformation->Method = $method;
+        $subjectConformation->SubjectConfirmationData = $subjectConfirmationData;
+        $this->assertion->setSubjectConfirmation([$subjectConformation]);
+
+        return $this;
+    }
+    /**
+     * @return $this
+     */
+    public function setAuthnContext($authnContext = \SAML2_Const::AC_PASSWORD) {
+        $this->assertion->setAuthnContextClassRef($authnContext);
+
+        return $this;
+    }
+
+    /**
      * @param $issuer
      * @return $this
      */
@@ -204,24 +244,13 @@ class AssertionBuilder
     }
 
     /**
-     * @param string $nameFormat
-     * @return $this
+     * @param \XMLSecurityKey $privateKey
+     * @param \XMLSecurityKey $publicCert
      */
-    public function setAttributesNameFormat($nameFormat = \SAML2_Const::NAMEFORMAT_UNSPECIFIED)
+    public function sign(\XMLSecurityKey $privateKey, \XMLSecurityKey $publicCert)
     {
-        $this->assertion->setAttributeNameFormat($nameFormat);
-
-        return $this;
-    }
-
-    /**
-     * @param string $authnContext
-     * @return $this
-     */
-    public function setAuthnContext($authnContext = \SAML2_Const::AC_PASSWORD)
-    {
-        $this->assertion->setAuthnContextClassRef($authnContext);
-
-        return $this;
+        $element = $this->assertion;
+        $element->setSignatureKey($privateKey);
+        $element->setCertificates([$publicCert->getX509Certificate()]);
     }
 }

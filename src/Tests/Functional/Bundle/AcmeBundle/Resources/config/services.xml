@@ -7,8 +7,5 @@
     <services>
         <service id="acme.saml.service_provider_repository" class="AdactiveSas\Saml2BridgeBundle\Tests\Functional\Bundle\AcmeBundle\Saml\SamlServiceProviderRepository">
         </service>
-        <service id="acme.saml.event_subscriber" class="AdactiveSas\Saml2BridgeBundle\Tests\Functional\Bundle\AcmeBundle\Saml\SamlEventSubscriber">
-            <tag name="kernel.event_subscriber"/>
-        </service>
     </services>
 </container>
