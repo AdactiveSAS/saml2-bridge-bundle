@@ -185,24 +185,12 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
             return;
         }
 
-        if ($event->getResponse()->isServerError() || $event->getResponse()->isClientError()) {
-            return;
-        }
-
-        if (
-            $this->stateHandler->get() !== null
-            && $this->stateHandler->get()->getRequest() !== null
-            && $this->stateHandler->can(SamlStateHandler::TRANSITION_SSO_RESPOND)
-        ) {
+        if ($this->stateHandler->can(SamlStateHandler::TRANSITION_SSO_RESPOND)) {
             $event->setResponse($this->continueSingleSignOn());
             return;
         }
 
-        if (
-            $this->stateHandler->get() !== null
-            && $this->stateHandler->get()->getRequest() !== null
-            && $this->stateHandler->can(SamlStateHandler::TRANSITION_SLS_RESPOND)
-        ) {
+        if ($this->stateHandler->can(SamlStateHandler::TRANSITION_SLS_RESPOND)) {
             $event->setResponse($this->continueSingleLogoutService());
             return;
         }
@@ -219,7 +207,7 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
         }
 
         $user = $event->getAuthenticationToken()->getUser();
-        if ($this->stateHandler->get() !== null
+        if ($this->stateHandler->has()
             && $user instanceof UserInterface && $this->stateHandler->has()) {
             $this->stateHandler->get()->setUserName($user->getUsername());
         }
@@ -297,7 +285,7 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
         $inputBinding = $this->bindingContainer->get($this->identityProvider->getSsoBinding());
 
         try {
-            $authRequest = $inputBinding->receiveAuthnRequest($httpRequest);
+            $authRequest = $inputBinding->receiveUnsignedAuthnRequest($httpRequest);
             $sp = $this->getServiceProvider($authRequest->getIssuer());
             if ($sp->wantSignedAuthnRequest()) {
                 $authRequest = $inputBinding->receiveSignedAuthnRequest($httpRequest);
@@ -398,14 +386,12 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
         $inputBinding = $this->bindingContainer->get($this->identityProvider->getSlsBinding());
 
         try {
-            $logoutMessage = $inputBinding->receiveUnsignedMessage($httpRequest);
+            $logoutMessage = $inputBinding->receiveUnsignedLogoutRequest($httpRequest);
             $sp = $this->getServiceProvider($logoutMessage->getIssuer());
             if ($sp->wantSignedLogoutRequest()) {
-                $logoutMessage = $inputBinding->receiveSignedMessage($httpRequest);
+                $logoutMessage = $inputBinding->receiveSignedLogoutRequest($httpRequest);
             }
-            if ($logoutMessage instanceof \SAML2_LogoutRequest){
-                $this->validateRequest($logoutMessage);
-            }
+            $this->validateRequest($logoutMessage);
         } catch (\Throwable $e) {
             // handle error, apparently the request cannot be processed :(
             $msg = sprintf('Could not process Request, error: "%s"', $e->getMessage());
@@ -464,7 +450,7 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
             $this->stateHandler->apply(SamlStateHandler::TRANSITION_SLS_START_PROPAGATE);
 
             // Dispatch logout to service providers
-            $sp = $this->serviceProviderRepository->getServiceProvider($state->getRequest()->getIssuer());
+            $sp = $this->serviceProviderRepository->getServiceProvider($state->popServiceProviderIds());
             $logoutRequest = $this->buildLogoutRequest($sp);
 
             $outBinding = $this->bindingContainer->get($sp->getSingleLogoutBinding());

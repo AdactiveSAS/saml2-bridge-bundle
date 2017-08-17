@@ -116,16 +116,6 @@ class HttpPostBinding implements HttpBindingInterface
         throw new UnsupportedBindingException("Unsupported binding: signed POST AuthnRequest is not supported at the moment");
     }
 
-    /**
-     * @param Request $request
-     * @return \SAML2_AuthnRequest
-     */
-    public function receiveAuthnRequest(Request $request)
-    {
-        throw new UnsupportedBindingException(
-            "Unsupported binding: signed POST AuthnRequest is not supported at the moment"
-        );
-    }
 
     /**
      * @param Request $request
