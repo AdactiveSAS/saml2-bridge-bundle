@@ -6,4 +6,5 @@
   - Default Logger into `adactive_sas_saml2_bridge.processor.hosted_idp` service
 
 ### Fix
+  - SLS initiated by IDP
 

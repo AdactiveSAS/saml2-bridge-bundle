@@ -224,6 +224,24 @@ class HttpRedirectBinding implements HttpBindingInterface
 
     /**
      * @param Request $request
+     * @return \SAML2_LogoutResponse
+     * @throws \AdactiveSas\Saml2BridgeBundle\Exception\InvalidArgumentException
+     */
+    public function receiveSignedLogoutResponse(Request $request){
+        $message = $this->receiveSignedMessage($request);
+
+        if (!$message instanceof \SAML2_LogoutResponse) {
+            throw new InvalidArgumentException(sprintf(
+                'The received request is not an LogoutRequest, "%s" received instead',
+                substr(get_class($message), strrpos($message, '_') + 1)
+            ));
+        }
+
+        return $message;
+    }
+
+    /**
+     * @param Request $request
      * @return \SAML2_AuthnRequest
      * @throws \AdactiveSas\Saml2BridgeBundle\Exception\InvalidArgumentException
      */
@@ -251,7 +269,25 @@ class HttpRedirectBinding implements HttpBindingInterface
         if (!$message instanceof \SAML2_LogoutRequest) {
             throw new InvalidArgumentException(sprintf(
                 'The received request is not an LogoutRequest, "%s" received instead',
-                substr(get_class($message), strrpos($message, '_') + 1)
+                substr(get_class($message), strrpos(get_class($message), '_') + 1)
+            ));
+        }
+
+        return $message;
+    }
+
+    /**
+     * @param Request $request
+     * @return \SAML2_LogoutResponse
+     * @throws \AdactiveSas\Saml2BridgeBundle\Exception\InvalidArgumentException
+     */
+    public function receiveUnsignedLogoutResponse(Request $request){
+        $message = $this->receiveUnsignedMessage($request);
+
+        if (!$message instanceof \SAML2_LogoutResponse) {
+            throw new InvalidArgumentException(sprintf(
+                'The received request is not an LogoutRequest, "%s" received instead',
+                substr(get_class($message), strrpos(get_class($message), '_') + 1)
             ));
         }
 
