@@ -91,6 +91,7 @@ class AdactiveSasSaml2BridgeExtension extends Extension
             ]
         );
         $idpDefinition->addTag("kernel.event_subscriber");
+        $idpDefinition->addMethodCall("setLogger", [new Reference("logger")]);
         $container->setDefinition("adactive_sas_saml2_bridge.processor.hosted_idp", $idpDefinition);
     }
 }
