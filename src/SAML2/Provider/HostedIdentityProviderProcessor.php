@@ -704,10 +704,6 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
             throw new UnknownServiceProviderException($message->getIssuer());
         }
 
-        if (!$this->identityProvider->wantSignedAuthnRequest()) {
-            return;
-        }
-
         $serviceProvider = $this->getServiceProvider($message->getIssuer());
 
         $this->logger->debug(sprintf('Extracting public keys for ServiceProvider "%s"', $serviceProvider->getEntityId()));

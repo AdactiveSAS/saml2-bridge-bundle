@@ -7,4 +7,5 @@
 
 ### Fix
   - SLS initiated by IDP
+  - Issue on skipped signature validation, even when the service provider wants requests to be signed
 
