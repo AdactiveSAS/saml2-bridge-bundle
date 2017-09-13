@@ -210,6 +210,10 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
             return;
         }
 
+        if($this->stateHandler->has()){
+            $this->stateHandler->get()->resetLoginRetryCount();
+        }
+
         $user = $event->getAuthenticationToken()->getUser();
         if ($this->stateHandler->has()
             && $user instanceof UserInterface && $this->stateHandler->has()) {
@@ -235,6 +239,19 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
         if (!$this->stateHandler->can(SamlStateHandler::TRANSITION_SSO_AUTHENTICATE_FAIL)) {
             $this->logger->debug("Cannot perform authentication fail");
             return;
+        }
+
+        if($this->stateHandler->has()){
+            /** @var \SAML2_AuthnRequest $authRequest */
+            $authRequest = $this->stateHandler->get()->getRequest();
+
+            $sp = $this->getServiceProvider($authRequest->getIssuer());
+
+            if($this->stateHandler->get()->getLoginRetryCount() < $sp->getMaxRetryLogin()){
+                $this->stateHandler->get()->incrementLoginRetryCount();
+                $this->logger->debug("Login failed, retrying");
+                return;
+            }
         }
 
         $this->logger->notice("Authentication failed");

@@ -124,4 +124,12 @@ class ServiceProvider extends \SAML2_Configuration_ServiceProvider
     {
         return $this->get('NameQualifier');
     }
+
+    /**
+     * @return int
+     */
+    public function getMaxRetryLogin()
+    {
+        return $this->get('maxRetryLogin', 0);
+    }
 }
