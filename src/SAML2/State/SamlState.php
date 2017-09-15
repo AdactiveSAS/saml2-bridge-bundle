@@ -47,6 +47,11 @@ class SamlState
     protected $originalLogoutResponse;
 
     /**
+     * @var int
+     */
+    protected $loginRetryCount;
+
+    /**
      * @var null|string
      */
     protected $authnContext = \SAML2_Const::AC_UNSPECIFIED;
@@ -58,6 +63,7 @@ class SamlState
     {
         $this->state = self::STATE_INITIAL;
         $this->serviceProvidersIds = [];
+        $this->loginRetryCount = 0;
     }
 
     /**
@@ -226,6 +232,42 @@ class SamlState
     public function setAuthnContext($authnContext)
     {
         $this->authnContext = $authnContext;
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getLoginRetryCount()
+    {
+        return $this->loginRetryCount;
+    }
+
+    /**
+     * @param int $loginRetryCount
+     * @return SamlState
+     */
+    public function setLoginRetryCount($loginRetryCount)
+    {
+        $this->loginRetryCount = $loginRetryCount;
+        return $this;
+    }
+
+    /**
+     * @return SamlState
+     */
+    public function incrementLoginRetryCount()
+    {
+        $this->loginRetryCount++;
+        return $this;
+    }
+
+    /**
+     * @return SamlState
+     */
+    public function resetLoginRetryCount()
+    {
+        $this->loginRetryCount = 0;
         return $this;
     }
 }

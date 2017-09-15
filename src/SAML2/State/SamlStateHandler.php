@@ -29,6 +29,7 @@ class SamlStateHandler implements EventSubscriberInterface
     const TRANSITION_SSO_RESUME = "sso_resume";
     
     const TRANSITION_SLS_START = "sls_transition_start";
+    const TRANSITION_SLS_START_BY_IDP = "sls_transition_start_by_idp";
     const TRANSITION_SLS_START_DISPATCH = "sls_start_dispatch";
     const TRANSITION_SLS_END_DISPATCH = "sls_end_dispatch";
     const TRANSITION_SLS_START_PROPAGATE = "sls_start_propagate";
@@ -220,6 +221,14 @@ class SamlStateHandler implements EventSubscriberInterface
 
         $builder->addTransition(
             new Transition(
+                self::TRANSITION_SLS_START_BY_IDP,
+                SamlState::STATE_INITIAL,
+                SamlState::STATE_SLS_DISPATCH_END
+            )
+        );
+
+        $builder->addTransition(
+            new Transition(
                 self::TRANSITION_SLS_START_DISPATCH,
                 SamlState::STATE_SLS_STARTED,
                 SamlState::STATE_SLS_DISPATCH_START
@@ -262,7 +271,7 @@ class SamlStateHandler implements EventSubscriberInterface
             new Transition(
                 self::TRANSITION_SLS_RESPOND,
                 SamlState::STATE_SLS_PROPAGATE_END,
-                SamlState::STATE_SSO_RESPONDING
+                SamlState::STATE_SLS_RESPONDING
             )
         );
 
@@ -270,7 +279,7 @@ class SamlStateHandler implements EventSubscriberInterface
             new Transition(
                 self::TRANSITION_SLS_RESPOND,
                 SamlState::STATE_SLS_DISPATCH_END,
-                SamlState::STATE_SSO_RESPONDING
+                SamlState::STATE_SLS_RESPONDING
             )
         );
 
@@ -302,11 +311,12 @@ class SamlStateHandler implements EventSubscriberInterface
 
     /**
      * @param $transition
+     * @param bool $needRequest
      * @return bool
      */
-    public function can($transition)
+    public function can($transition, $needRequest = true)
     {
-        return $this->has() && $this->get()->getRequest() !== null && $this->workflow->can($this->get(), $transition);
+        return $this->has() && (!$needRequest || $this->get()->getRequest() !== null) && $this->workflow->can($this->get(), $transition);
     }
 
     /**
@@ -330,10 +340,15 @@ class SamlStateHandler implements EventSubscriberInterface
      */
     public function resume($force = false)
     {
-        if ($force && !$this->can(SamlStateHandler::TRANSITION_SSO_RESUME)){
+        $canSsoResume = $this->can(SamlStateHandler::TRANSITION_SSO_RESUME);
+        $canSlsResume = $this->can(SamlStateHandler::TRANSITION_SLS_RESUME);
+        if ($force && !$canSsoResume && !$canSlsResume){
             $this->get()->setState(SamlState::STATE_INITIAL);
-        }else {
+        }else if($canSsoResume){
             $this->apply(SamlStateHandler::TRANSITION_SSO_RESUME);
+        }else {
+            // will trigger if it's not allowed !
+            $this->apply(SamlStateHandler::TRANSITION_SLS_RESUME);
         }
 
         $this->get()->setRequest(null)->setOriginalLogoutResponse(null);
