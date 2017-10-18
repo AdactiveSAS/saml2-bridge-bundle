@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v0.7.1
+
+### Fix
+  - Travis test by increasing php memory limit
+
 ## v0.7.0
 
 ### Add
