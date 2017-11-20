@@ -185,26 +185,18 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
             return;
         }
 
-        if ($event->getResponse()->isServerError() || $event->getResponse()->isClientError()) {
-            return;
-        }
-
-        if (
-            $this->stateHandler->get() !== null
-            && $this->stateHandler->get()->getRequest() !== null
-            && $this->stateHandler->can(SamlStateHandler::TRANSITION_SSO_RESPOND)
-        ) {
+        if ($this->stateHandler->can(SamlStateHandler::TRANSITION_SSO_RESPOND)) {
             $event->setResponse($this->continueSingleSignOn());
             return;
+        }else{
+            $this->logger->debug("Cannot TRANSITION_SSO_RESPOND, state is ". $this->stateHandler->get()->getState());
         }
 
-        if (
-            $this->stateHandler->get() !== null
-            && $this->stateHandler->get()->getRequest() !== null
-            && $this->stateHandler->can(SamlStateHandler::TRANSITION_SLS_RESPOND)
-        ) {
+        if ($this->stateHandler->can(SamlStateHandler::TRANSITION_SLS_RESPOND, false)) {
             $event->setResponse($this->continueSingleLogoutService());
             return;
+        }else{
+            $this->logger->debug("Cannot TRANSITION_SLS_RESPOND, state is ". $this->stateHandler->get()->getState());
         }
     }
 
@@ -218,8 +210,12 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
             return;
         }
 
+        if($this->stateHandler->has()){
+            $this->stateHandler->get()->resetLoginRetryCount();
+        }
+
         $user = $event->getAuthenticationToken()->getUser();
-        if ($this->stateHandler->get() !== null
+        if ($this->stateHandler->has()
             && $user instanceof UserInterface && $this->stateHandler->has()) {
             $this->stateHandler->get()->setUserName($user->getUsername());
         }
@@ -245,6 +241,19 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
             return;
         }
 
+        if($this->stateHandler->has()){
+            /** @var \SAML2_AuthnRequest $authRequest */
+            $authRequest = $this->stateHandler->get()->getRequest();
+
+            $sp = $this->getServiceProvider($authRequest->getIssuer());
+
+            if($this->stateHandler->get()->getLoginRetryCount() < $sp->getMaxRetryLogin()){
+                $this->stateHandler->get()->incrementLoginRetryCount();
+                $this->logger->debug("Login failed, retrying");
+                return;
+            }
+        }
+
         $this->logger->notice("Authentication failed");
         $this->stateHandler->apply(SamlStateHandler::TRANSITION_SSO_AUTHENTICATE_FAIL);
     }
@@ -259,10 +268,7 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
             $this->stateHandler->resume(true);
             $this->stateHandler->get()->setOriginalLogoutResponse($event->getResponse());
 
-            $this->stateHandler
-                ->apply(SamlStateHandler::TRANSITION_SLS_START)
-                ->apply(SamlStateHandler::TRANSITION_SLS_START_DISPATCH)
-                ->apply(SamlStateHandler::TRANSITION_SLS_END_DISPATCH);
+            $this->stateHandler->apply(SamlStateHandler::TRANSITION_SLS_START_BY_IDP);
 
             return;
         }
@@ -297,13 +303,13 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
         $inputBinding = $this->bindingContainer->get($this->identityProvider->getSsoBinding());
 
         try {
-            $authRequest = $inputBinding->receiveAuthnRequest($httpRequest);
+            $authRequest = $inputBinding->receiveUnsignedAuthnRequest($httpRequest);
             $sp = $this->getServiceProvider($authRequest->getIssuer());
             if ($sp->wantSignedAuthnRequest()) {
                 $authRequest = $inputBinding->receiveSignedAuthnRequest($httpRequest);
             }
 
-            $this->validateRequest($authRequest);
+            $this->validateMessage($authRequest);
 
             $event = new ReceiveAuthnRequestEvent($authRequest, $this->identityProvider, $this->stateHandler);
             $this->eventDispatcher->dispatch(Saml2Events::SSO_AUTHN_RECEIVE_REQUEST, $event);
@@ -399,13 +405,6 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
 
         try {
             $logoutMessage = $inputBinding->receiveUnsignedMessage($httpRequest);
-            $sp = $this->getServiceProvider($logoutMessage->getIssuer());
-            if ($sp->wantSignedLogoutRequest()) {
-                $logoutMessage = $inputBinding->receiveSignedMessage($httpRequest);
-            }
-            if ($logoutMessage instanceof \SAML2_LogoutRequest){
-                $this->validateRequest($logoutMessage);
-            }
         } catch (\Throwable $e) {
             // handle error, apparently the request cannot be processed :(
             $msg = sprintf('Could not process Request, error: "%s"', $e->getMessage());
@@ -415,6 +414,12 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
         }
 
         if ($logoutMessage instanceof \SAML2_LogoutRequest) {
+            $sp = $this->getServiceProvider($logoutMessage->getIssuer());
+            if ($sp->wantSignedLogoutRequest()) {
+                $logoutMessage = $inputBinding->receiveSignedLogoutRequest($httpRequest);
+            }
+            $this->validateMessage($logoutMessage);
+
             $this->logger->notice('Received LogoutRequest, started processing');
 
             $this->stateHandler->resume(true)->apply(SamlStateHandler::TRANSITION_SLS_START);
@@ -428,6 +433,12 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
         }
 
         if ($logoutMessage instanceof \SAML2_LogoutResponse) {
+            $sp = $this->getServiceProvider($logoutMessage->getIssuer());
+            if ($sp->wantSignedLogoutResponse()) {
+                $logoutMessage = $inputBinding->receiveSignedLogoutResponse($httpRequest);
+            }
+            $this->validateMessage($logoutMessage);
+
             $this->logger->notice('Received LogoutResponse, continue processing');
             $this->stateHandler->apply(SamlStateHandler::TRANSITION_SLS_END_PROPAGATE);
 
@@ -464,10 +475,12 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
             $this->stateHandler->apply(SamlStateHandler::TRANSITION_SLS_START_PROPAGATE);
 
             // Dispatch logout to service providers
-            $sp = $this->serviceProviderRepository->getServiceProvider($state->getRequest()->getIssuer());
+            $sp = $this->serviceProviderRepository->getServiceProvider($state->popServiceProviderIds());
             $logoutRequest = $this->buildLogoutRequest($sp);
 
             $outBinding = $this->bindingContainer->get($sp->getSingleLogoutBinding());
+
+            $this->logger->notice(sprintf('Propagate logout to sp %s',$sp->getSingleLogoutUrl()));
 
             if ($sp->wantSignedLogoutRequest()) {
                 $response = $outBinding->getSignedRequest($logoutRequest);
@@ -487,6 +500,8 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
 
             $sp = $this->getServiceProvider($logoutRequest->getIssuer());
             $outBinding = $this->bindingContainer->get($sp->getSingleLogoutBinding());
+
+            $this->logger->notice(sprintf('Logout: Respond to sp initiator %s',$sp->getEntityId()));
 
             if ($sp->wantSignedLogoutResponse()) {
                 $response = $outBinding->getSignedResponse($logoutResponse);
@@ -511,6 +526,8 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
         }
 
         $this->stateHandler->resume();
+
+        $this->logger->notice('Saml: Logout terminated');
 
         return $response;
     }
@@ -565,7 +582,7 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
         $user = $this->stateHandler->getUser();
         $nameIdValue =
             is_callable($serviceProvider->getNameIdValue())
-                ? ($serviceProvider->getNameIdValue())($user)
+                ? call_user_func($serviceProvider->getNameIdValue(), $user)
                 : $serviceProvider->getNameIdValue();
 
 
@@ -575,7 +592,7 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
             ->setSessionNotOnOrAfter(new \DateInterval('P1D'))
             ->setIssuer($this->identityProvider->getEntityId())
             ->setNameId($nameIdValue, $serviceProvider->getNameIdFormat(), $serviceProvider->getNameQualifier(), $authnRequest->getIssuer())
-            //->setSubjectConfirmation(\SAML2_Const::CM_BEARER, $authnRequest->getId(), new \DateInterval('PT5M'), $serviceProvider->getAssertionConsumerUrl())
+            ->setConfirmationMethod(SAML2_Const::CM_BEARER)
             ->setInResponseTo($authnRequest->getId())
             ->setRecipient($serviceProvider->getAssertionConsumerUrl())
             ->setAuthnContext($state->getAuthnContext());
@@ -696,19 +713,15 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
     }
 
     /**
-     * @param \SAML2_Request $request
+     * @param \SAML2_Message $message
      */
-    protected function validateRequest(\SAML2_Request $request)
+    protected function validateMessage(\SAML2_Message $message)
     {
-        if (!$this->serviceProviderRepository->hasServiceProvider($request->getIssuer())) {
-            throw new UnknownServiceProviderException($request->getIssuer());
+        if (!$this->serviceProviderRepository->hasServiceProvider($message->getIssuer())) {
+            throw new UnknownServiceProviderException($message->getIssuer());
         }
 
-        if (!$this->identityProvider->wantSignedAuthnRequest()) {
-            return;
-        }
-
-        $serviceProvider = $this->getServiceProvider($request->getIssuer());
+        $serviceProvider = $this->getServiceProvider($message->getIssuer());
 
         $this->logger->debug(sprintf('Extracting public keys for ServiceProvider "%s"', $serviceProvider->getEntityId()));
 
@@ -729,7 +742,7 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
             $key = new \XMLSecurityKey(\XMLSecurityKey::RSA_SHA256, array('type' => 'public'));
             $key->loadKey($x509Key->getCertificate());
 
-            $request->validate($key);
+            $message->validate($key);
         }
     }
 }

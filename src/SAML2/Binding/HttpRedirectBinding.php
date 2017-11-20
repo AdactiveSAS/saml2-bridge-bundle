@@ -206,14 +206,15 @@ class HttpRedirectBinding implements HttpBindingInterface
 
     /**
      * @param Request $request
-     * @return \SAML2_AuthnRequest
+     * @return \SAML2_LogoutRequest
+     * @throws \AdactiveSas\Saml2BridgeBundle\Exception\InvalidArgumentException
      */
-    public function receiveAuthnRequest(Request $request){
-        $message = $this->receiveUnsignedMessage($request);
+    public function receiveSignedLogoutRequest(Request $request){
+        $message = $this->receiveSignedMessage($request);
 
-        if (!$message instanceof \SAML2_AuthnRequest) {
+        if (!$message instanceof \SAML2_LogoutRequest) {
             throw new InvalidArgumentException(sprintf(
-                'The received request is not an AuthnRequest, "%s" received instead',
+                'The received request is not an LogoutRequest, "%s" received instead',
                 substr(get_class($message), strrpos($message, '_') + 1)
             ));
         }
@@ -223,13 +224,13 @@ class HttpRedirectBinding implements HttpBindingInterface
 
     /**
      * @param Request $request
-     * @return \SAML2_LogoutRequest
+     * @return \SAML2_LogoutResponse
      * @throws \AdactiveSas\Saml2BridgeBundle\Exception\InvalidArgumentException
      */
-    public function receiveSignedLogoutRequest(Request $request){
+    public function receiveSignedLogoutResponse(Request $request){
         $message = $this->receiveSignedMessage($request);
 
-        if (!$message instanceof \SAML2_LogoutRequest) {
+        if (!$message instanceof \SAML2_LogoutResponse) {
             throw new InvalidArgumentException(sprintf(
                 'The received request is not an LogoutRequest, "%s" received instead',
                 substr(get_class($message), strrpos($message, '_') + 1)
@@ -268,7 +269,25 @@ class HttpRedirectBinding implements HttpBindingInterface
         if (!$message instanceof \SAML2_LogoutRequest) {
             throw new InvalidArgumentException(sprintf(
                 'The received request is not an LogoutRequest, "%s" received instead',
-                substr(get_class($message), strrpos($message, '_') + 1)
+                substr(get_class($message), strrpos(get_class($message), '_') + 1)
+            ));
+        }
+
+        return $message;
+    }
+
+    /**
+     * @param Request $request
+     * @return \SAML2_LogoutResponse
+     * @throws \AdactiveSas\Saml2BridgeBundle\Exception\InvalidArgumentException
+     */
+    public function receiveUnsignedLogoutResponse(Request $request){
+        $message = $this->receiveUnsignedMessage($request);
+
+        if (!$message instanceof \SAML2_LogoutResponse) {
+            throw new InvalidArgumentException(sprintf(
+                'The received request is not an LogoutRequest, "%s" received instead',
+                substr(get_class($message), strrpos(get_class($message), '_') + 1)
             ));
         }
 

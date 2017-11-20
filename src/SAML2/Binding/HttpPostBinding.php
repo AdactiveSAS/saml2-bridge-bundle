@@ -116,16 +116,6 @@ class HttpPostBinding implements HttpBindingInterface
         throw new UnsupportedBindingException("Unsupported binding: signed POST AuthnRequest is not supported at the moment");
     }
 
-    /**
-     * @param Request $request
-     * @return \SAML2_AuthnRequest
-     */
-    public function receiveAuthnRequest(Request $request)
-    {
-        throw new UnsupportedBindingException(
-            "Unsupported binding: signed POST AuthnRequest is not supported at the moment"
-        );
-    }
 
     /**
      * @param Request $request
@@ -135,6 +125,16 @@ class HttpPostBinding implements HttpBindingInterface
     public function receiveSignedLogoutRequest(Request $request)
     {
         throw new UnsupportedBindingException("Unsupported binding: signed POST LogoutRequest is not supported at the moment");
+    }
+
+    /**
+     * @param Request $request
+     * @return \SAML2_LogoutResponse
+     * @throws \AdactiveSas\Saml2BridgeBundle\SAML2\Binding\Exception\UnsupportedBindingException
+     */
+    public function receiveSignedLogoutResponse(Request $request)
+    {
+        throw new UnsupportedBindingException("Unsupported binding: signed POST LogoutResponse is not supported at the moment");
     }
 
     /**
@@ -155,6 +155,16 @@ class HttpPostBinding implements HttpBindingInterface
     public function receiveUnsignedLogoutRequest(Request $request)
     {
         throw new UnsupportedBindingException("Unsupported binding: unsigned POST LogoutRequest is not supported at the moment");
+    }
+
+    /**
+     * @param Request $request
+     * @return \SAML2_LogoutResponse
+     * @throws \AdactiveSas\Saml2BridgeBundle\SAML2\Binding\Exception\UnsupportedBindingException
+     */
+    public function receiveUnsignedLogoutResponse(Request $request)
+    {
+        throw new UnsupportedBindingException("Unsupported binding: unsigned POST LogoutResponse is not supported at the moment");
     }
 
     /**

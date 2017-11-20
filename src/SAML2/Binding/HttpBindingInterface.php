@@ -55,15 +55,15 @@ interface HttpBindingInterface
 
     /**
      * @param Request $request
-     * @return \SAML2_AuthnRequest
-     */
-    public function receiveAuthnRequest(Request $request);
-
-    /**
-     * @param Request $request
      * @return \SAML2_LogoutRequest
      */
     public function receiveSignedLogoutRequest(Request $request);
+
+    /**
+     * @param Request $request
+     * @return \SAML2_LogoutResponse
+     */
+    public function receiveSignedLogoutResponse(Request $request);
 
     /**
      * @param Request $request
@@ -76,6 +76,12 @@ interface HttpBindingInterface
      * @return \SAML2_LogoutRequest
      */
     public function receiveUnsignedLogoutRequest(Request $request);
+
+    /**
+     * @param Request $request
+     * @return \SAML2_LogoutResponse
+     */
+    public function receiveUnsignedLogoutResponse(Request $request);
 
     /**
      * @param Request $request

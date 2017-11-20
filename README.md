@@ -34,7 +34,7 @@ SAML Support is really limited, this bundle can be used to provide a basic ident
   public function registerBundles()
   {
       // ...
-      $bundles[] = AdactiveSas\Saml2BridgeBundle\AdactiveSasSaml2BridgeBundle();
+      $bundles[] = new AdactiveSas\Saml2BridgeBundle\AdactiveSasSaml2BridgeBundle();
   }
   ```
   
@@ -175,7 +175,7 @@ class SamlServiceProviderRepository implements ServiceProviderRepository
 }
 ```
 
-######Slack example
+###### Slack example
 ```
 $this->spMap["https://slack.com"] = new ServiceProvider(
     [
@@ -239,7 +239,7 @@ $this->spMap["https://slack.com"] = new ServiceProvider(
 );
 
 ```
-######Freshdesk example
+###### Freshdesk example
 ```
 $this->spMap["https://$freshdeskAccountName.freshdesk.com"] = new ServiceProvider(
     [
