@@ -331,23 +331,16 @@ class HttpRedirectBinding implements HttpBindingInterface
      */
     protected function getReceivedMessageQueryString(Request $request)
     {
-        if (!$request->isMethod(Request::METHOD_GET)) {
+        if (!($request->isMethod(Request::METHOD_GET) || $request->isMethod(Request::METHOD_POST))) {
             throw new BadRequestHttpException(sprintf(
-                'Could not receive Message from HTTP Request: expected a GET method, got %s',
+                'Could not receive Message from HTTP Request: expected a GET or POST method, got %s',
                 $request->getMethod()
             ));
         }
 
-        $requestUri = $request->getRequestUri();
-        if (strpos($requestUri, '?') === false) {
-            throw new BadRequestHttpException(
-                'Could not receive Message from HTTP Request: expected query parameters, none found'
-            );
-        }
+        $requestParams = $request->query->all() + $request->request->all();
 
-        list(, $rawQueryString) = explode('?', $requestUri);
-
-        return ReceivedMessageQueryString::parse($rawQueryString);
+        return ReceivedMessageQueryString::parse($requestParams);
     }
 
     /**
