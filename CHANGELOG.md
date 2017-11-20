@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v0.7.2
+
+### Fix
+  - Add an ability to receive GET and POST requests.
+  
 ## v0.7.1
 
 ### Fix
