@@ -67,57 +67,27 @@ final class ReceivedMessageQueryString
     }
 
     /**
-     * @param string $query
+     * @param array $requestParams
      * @return ReceivedMessageQueryString
-     * @throws \AdactiveSas\Saml2BridgeBundle\SAML2\Binding\Exception\InvalidRequestException
-     * @throws \AdactiveSas\Saml2BridgeBundle\SAML2\Binding\Exception\InvalidReceivedMessageQueryStringException
-     *
      * @SuppressWarnings(PHPMD.CyclomaticComplexity) Extensive validation
      * @SuppressWarnings(PHPMD.NPathComplexity) Extensive validation
      */
-    public static function parse($query)
+    public static function parse(array $requestParams)
     {
-        if (!is_string($query)) {
-            throw new InvalidReceivedMessageQueryStringException(sprintf(
-                'Could not parse query string: expected a non-empty string, %s given',
-                is_object($query) ? get_class($query) : gettype($query)
-            ));
-        }
-
-        $queryWithoutSeparator = ltrim($query, '?');
-
-        $queryParameters = explode('&', $queryWithoutSeparator);
-
-        $parameters = [];
-        foreach ($queryParameters as $queryParameter) {
-            if (!(strpos($queryParameter, '=') > 0)) {
+        foreach ($requestParams as $paramName => $paramValue) {
+            if (!in_array($paramName, self::$samlParameters, true)) {
+                unset($requestParams[$paramName]);
                 continue;
             }
-
-            list($key, $value) = explode('=', $queryParameter, 2);
-
-            if (!in_array($key, self::$samlParameters, true)) {
-                continue;
-            }
-
-            if (array_key_exists($key, $parameters)) {
-                throw new InvalidReceivedMessageQueryStringException(sprintf(
-                    'Invalid ReceivedMessage query string ("%s"): parameter "%s" already present',
-                    $queryWithoutSeparator,
-                    $key
-                ));
-            }
-
-            $parameters[$key] = urldecode($value);
         }
 
-        $isRequestMessage = array_key_exists(self::PARAMETER_REQUEST, $parameters);
-        $isResponseMessage = array_key_exists(self::PARAMETER_RESPONSE, $parameters);
+        $isRequestMessage = array_key_exists(self::PARAMETER_REQUEST, $requestParams);
+        $isResponseMessage = array_key_exists(self::PARAMETER_RESPONSE, $requestParams);
 
         if (!$isRequestMessage && !$isResponseMessage) {
             throw new InvalidReceivedMessageQueryStringException(sprintf(
-                'Invalid ReceivedMessage query string ("%s"): neither parameter "%s" nor parameter "%s" found',
-                $queryWithoutSeparator,
+                'Invalid ReceivedMessage query params (%s): neither parameter "%s" nor parameter "%s" found',
+                json_encode($requestParams),
                 self::PARAMETER_REQUEST,
                 self::PARAMETER_RESPONSE
             ));
@@ -125,14 +95,14 @@ final class ReceivedMessageQueryString
 
         if($isRequestMessage && $isResponseMessage){
             throw new InvalidReceivedMessageQueryStringException(sprintf(
-                'Invalid ReceivedMessage query string ("%s"): message must be either a request or a response but found parameters "%s" and "%s"',
-                $queryWithoutSeparator,
+                'Invalid ReceivedMessage query ("%s"): message must be either a request or a response but found parameters "%s" and "%s"',
+                json_encode($requestParams),
                 self::PARAMETER_REQUEST,
                 self::PARAMETER_RESPONSE
             ));
         }
 
-        $encodedMessage = $isRequestMessage ? $parameters[self::PARAMETER_REQUEST] : $parameters[self::PARAMETER_RESPONSE];
+        $encodedMessage = $isRequestMessage ? $requestParams[self::PARAMETER_REQUEST] : $requestParams[self::PARAMETER_RESPONSE];
 
         if (base64_decode($encodedMessage, true) === false) {
             throw new InvalidRequestException('Failed decoding SAML message, did not receive a valid base64 string');
@@ -140,35 +110,35 @@ final class ReceivedMessageQueryString
 
         $parsedQueryString = new self($encodedMessage);
 
-        if (isset($parameters[self::PARAMETER_RELAY_STATE])) {
-            $parsedQueryString->relayState = $parameters[self::PARAMETER_RELAY_STATE];
+        if (isset($requestParams[self::PARAMETER_RELAY_STATE])) {
+            $parsedQueryString->relayState = $requestParams[self::PARAMETER_RELAY_STATE];
         }
 
-        if (isset($parameters[self::PARAMETER_SIGNATURE])) {
-            if (!isset($parameters[self::PARAMETER_SIGNATURE_ALGORITHM])) {
+        if (isset($requestParams[self::PARAMETER_SIGNATURE])) {
+            if (!isset($requestParams[self::PARAMETER_SIGNATURE_ALGORITHM])) {
                 throw new InvalidReceivedMessageQueryStringException(sprintf(
                     'Invalid ReceivedMessage query string ("%s") contains a signature but not a signature algorithm',
-                    $queryWithoutSeparator
+                    json_encode($requestParams)
                 ));
             }
 
-            if (base64_decode($parameters[self::PARAMETER_SIGNATURE], true) === false) {
+            if (base64_decode($requestParams[self::PARAMETER_SIGNATURE], true) === false) {
                 throw new InvalidReceivedMessageQueryStringException(sprintf(
                     'Invalid ReceivedMessage query string ("%s"): signature is not base64 encoded correctly',
-                    $queryWithoutSeparator
+                    json_encode($requestParams)
                 ));
             }
 
-            $parsedQueryString->signature = $parameters[self::PARAMETER_SIGNATURE];
-            $parsedQueryString->signatureAlgorithm = $parameters[self::PARAMETER_SIGNATURE_ALGORITHM];
+            $parsedQueryString->signature = $requestParams[self::PARAMETER_SIGNATURE];
+            $parsedQueryString->signatureAlgorithm = $requestParams[self::PARAMETER_SIGNATURE_ALGORITHM];
 
             return $parsedQueryString;
         }
 
-        if (isset($parameters[self::PARAMETER_SIGNATURE_ALGORITHM])) {
+        if (isset($requestParams[self::PARAMETER_SIGNATURE_ALGORITHM])) {
             throw new InvalidReceivedMessageQueryStringException(sprintf(
                 'Invalid ReceivedMessage query string ("%s") contains a signature algorithm but not a signature',
-                $queryWithoutSeparator
+                json_encode($requestParams)
             ));
         }
 
@@ -214,21 +184,23 @@ final class ReceivedMessageQueryString
     {
         $samlRequest = base64_decode($this->samlMessage, true);
 
-        // Catch any errors gzinflate triggers
-        $errorNo = $errorMessage = null;
-        set_error_handler(function ($number, $message) use (&$errorNo, &$errorMessage) {
-            $errorNo      = $number;
-            $errorMessage = $message;
-        });
-        $samlRequest = gzinflate($samlRequest);
-        restore_error_handler();
+        if(substr($samlRequest, 0, 7) !== "<samlp:") {
+            // Catch any errors gzinflate triggers
+            $errorNo = $errorMessage = null;
+            set_error_handler(function ($number, $message) use (&$errorNo, &$errorMessage) {
+                $errorNo      = $number;
+                $errorMessage = $message;
+            });
+            $samlRequest = gzinflate($samlRequest);
+            restore_error_handler();
 
-        if ($samlRequest === false) {
-            throw new InvalidRequestException(sprintf(
-                'Failed inflating SAML Request; error "%d": "%s"',
-                $errorNo,
-                $errorMessage
-            ));
+            if ($samlRequest === false) {
+                throw new InvalidRequestException(sprintf(
+                    'Failed inflating SAML Request; error "%d": "%s"',
+                    $errorNo,
+                    $errorMessage
+                ));
+            }
         }
 
         return $samlRequest;
