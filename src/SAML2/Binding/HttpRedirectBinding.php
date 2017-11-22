@@ -29,6 +29,83 @@ use Symfony\Component\HttpFoundation\Response;
 class HttpRedirectBinding extends AbstractHttpBinding implements HttpBindingInterface
 {
     /**
+     * @param \SAML2_StatusResponse $response
+     * @return RedirectResponse
+     * @throws \InvalidArgumentException
+     * @throws \AdactiveSas\Saml2BridgeBundle\Exception\LogicException
+     */
+    public function getSignedResponse(\SAML2_StatusResponse $response)
+    {
+        $destination = $response->getDestination();
+        if($destination === null){
+            throw new LogicException('Invalid destination');
+        }
+
+        $securityKey = $response->getSignatureKey();
+        if($securityKey === null){
+            throw new LogicException('Signature key is required');
+        }
+
+        $responseAsXml = $response->toUnsignedXML()->ownerDocument->saveXML();
+        $encodedResponse = base64_encode(gzdeflate($responseAsXml));
+
+        /* Build the query string. */
+
+        $msg = 'SAMLResponse=' . urlencode($encodedResponse);
+
+        if ($response->getRelayState() !== NULL) {
+            $msg .= '&RelayState=' . urlencode($response->getRelayState());
+        }
+
+        /* Add the signature. */
+        $msg .= '&SigAlg=' . urlencode($securityKey->type);
+
+        $signature = $securityKey->signData($msg);
+        $msg .= '&Signature=' . urlencode(base64_encode($signature));
+
+        if (strpos($destination, '?') === FALSE) {
+            $destination .= '?' . $msg;
+        } else {
+            $destination .= '&' . $msg;
+        }
+
+        return new RedirectResponse($destination);
+    }
+
+    /**
+     * @param \SAML2_StatusResponse $response
+     * @return RedirectResponse
+     * @throws \InvalidArgumentException
+     * @throws \AdactiveSas\Saml2BridgeBundle\Exception\LogicException
+     */
+    public function getUnsignedResponse(\SAML2_StatusResponse $response)
+    {
+        $destination = $response->getDestination();
+        if($destination === null){
+            throw new LogicException('Invalid destination');
+        }
+
+        $responseAsXml = $response->toUnsignedXML()->ownerDocument->saveXML();
+        $encodedResponse = base64_encode(gzdeflate($responseAsXml));
+
+        /* Build the query string. */
+
+        $msg = 'SAMLResponse=' . urlencode($encodedResponse);
+
+        if ($response->getRelayState() !== NULL) {
+            $msg .= '&RelayState=' . urlencode($response->getRelayState());
+        }
+
+        if (strpos($destination, '?') === FALSE) {
+            $destination .= '?' . $msg;
+        } else {
+            $destination .= '&' . $msg;
+        }
+
+        return new RedirectResponse($destination);
+    }
+
+    /**
      * @param \SAML2_Request $request
      * @return Response
      * @throws \AdactiveSas\Saml2BridgeBundle\SAML2\Binding\Exception\UnsupportedBindingException

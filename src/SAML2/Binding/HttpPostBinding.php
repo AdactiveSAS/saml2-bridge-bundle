@@ -88,26 +88,6 @@ class HttpPostBinding extends AbstractHttpBinding implements HttpBindingInterfac
     }
 
     /**
-     * @param \SAML2_StatusResponse $response
-     * @return \Symfony\Component\Form\FormInterface
-     * @throws \Symfony\Component\OptionsResolver\Exception\InvalidOptionsException
-     */
-    public function getSignedResponseForm(\SAML2_StatusResponse $response)
-    {
-        return $this->getResponseForm($response, true);
-    }
-
-    /**
-     * @param \SAML2_StatusResponse $response
-     * @return \Symfony\Component\Form\FormInterface
-     * @throws \Symfony\Component\OptionsResolver\Exception\InvalidOptionsException
-     */
-    public function getUnsignedResponseForm(\SAML2_StatusResponse $response)
-    {
-        return $this->getResponseForm($response, false);
-    }
-
-    /**
      * @param \SAML2_Request $request
      * @return Response
      * @throws \AdactiveSas\Saml2BridgeBundle\SAML2\Binding\Exception\UnsupportedBindingException
@@ -135,6 +115,26 @@ class HttpPostBinding extends AbstractHttpBinding implements HttpBindingInterfac
         $requestParams = $request->request->all();
 
         return ReceivedMessageQueryString::parse($requestParams);
+    }
+
+    /**
+     * @param \SAML2_StatusResponse $response
+     * @return \Symfony\Component\Form\FormInterface
+     * @throws \Symfony\Component\OptionsResolver\Exception\InvalidOptionsException
+     */
+    protected function getSignedResponseForm(\SAML2_StatusResponse $response)
+    {
+        return $this->getResponseForm($response, true);
+    }
+
+    /**
+     * @param \SAML2_StatusResponse $response
+     * @return \Symfony\Component\Form\FormInterface
+     * @throws \Symfony\Component\OptionsResolver\Exception\InvalidOptionsException
+     */
+    protected function getUnsignedResponseForm(\SAML2_StatusResponse $response)
+    {
+        return $this->getResponseForm($response, false);
     }
 
     /**
