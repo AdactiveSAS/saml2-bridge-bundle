@@ -19,6 +19,7 @@
 namespace AdactiveSas\Saml2BridgeBundle\SAML2\Binding;
 
 
+use AdactiveSas\Saml2BridgeBundle\Exception\BadRequestHttpException;
 use AdactiveSas\Saml2BridgeBundle\Exception\LogicException;
 use AdactiveSas\Saml2BridgeBundle\Form\SAML2ResponseForm;
 use AdactiveSas\Saml2BridgeBundle\SAML2\Binding\Exception\UnsupportedBindingException;
@@ -27,7 +28,7 @@ use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class HttpPostBinding implements HttpBindingInterface
+class HttpPostBinding extends AbstractHttpBinding implements HttpBindingInterface
 {
     /**
      * @var FormFactoryInterface
@@ -87,107 +88,6 @@ class HttpPostBinding implements HttpBindingInterface
     }
 
     /**
-     * @param \SAML2_Request $request
-     * @return Response
-     * @throws \AdactiveSas\Saml2BridgeBundle\SAML2\Binding\Exception\UnsupportedBindingException
-     */
-    public function getSignedRequest(\SAML2_Request $request)
-    {
-        throw new UnsupportedBindingException("Unsupported binding: unsigned POST Request is not supported at the moment");
-    }
-
-    /**
-     * @param \SAML2_Request $request
-     * @return Response
-     * @throws \AdactiveSas\Saml2BridgeBundle\SAML2\Binding\Exception\UnsupportedBindingException
-     */
-    public function getUnsignedRequest(\SAML2_Request $request)
-    {
-        throw new UnsupportedBindingException("Unsupported binding: unsigned POST Request is not supported at the moment");
-    }
-
-    /**
-     * @param Request $request
-     * @return \SAML2_AuthnRequest
-     * @throws \AdactiveSas\Saml2BridgeBundle\SAML2\Binding\Exception\UnsupportedBindingException
-     */
-    public function receiveSignedAuthnRequest(Request $request)
-    {
-        throw new UnsupportedBindingException("Unsupported binding: signed POST AuthnRequest is not supported at the moment");
-    }
-
-
-    /**
-     * @param Request $request
-     * @return \SAML2_LogoutRequest
-     * @throws \AdactiveSas\Saml2BridgeBundle\SAML2\Binding\Exception\UnsupportedBindingException
-     */
-    public function receiveSignedLogoutRequest(Request $request)
-    {
-        throw new UnsupportedBindingException("Unsupported binding: signed POST LogoutRequest is not supported at the moment");
-    }
-
-    /**
-     * @param Request $request
-     * @return \SAML2_LogoutResponse
-     * @throws \AdactiveSas\Saml2BridgeBundle\SAML2\Binding\Exception\UnsupportedBindingException
-     */
-    public function receiveSignedLogoutResponse(Request $request)
-    {
-        throw new UnsupportedBindingException("Unsupported binding: signed POST LogoutResponse is not supported at the moment");
-    }
-
-    /**
-     * @param Request $request
-     * @return \SAML2_AuthnRequest
-     * @throws \AdactiveSas\Saml2BridgeBundle\SAML2\Binding\Exception\UnsupportedBindingException
-     */
-    public function receiveUnsignedAuthnRequest(Request $request)
-    {
-        throw new UnsupportedBindingException("Unsupported binding: unsigned POST AuthnRequest is not supported at the moment");
-    }
-
-    /**
-     * @param Request $request
-     * @return \SAML2_LogoutRequest
-     * @throws \AdactiveSas\Saml2BridgeBundle\SAML2\Binding\Exception\UnsupportedBindingException
-     */
-    public function receiveUnsignedLogoutRequest(Request $request)
-    {
-        throw new UnsupportedBindingException("Unsupported binding: unsigned POST LogoutRequest is not supported at the moment");
-    }
-
-    /**
-     * @param Request $request
-     * @return \SAML2_LogoutResponse
-     * @throws \AdactiveSas\Saml2BridgeBundle\SAML2\Binding\Exception\UnsupportedBindingException
-     */
-    public function receiveUnsignedLogoutResponse(Request $request)
-    {
-        throw new UnsupportedBindingException("Unsupported binding: unsigned POST LogoutResponse is not supported at the moment");
-    }
-
-    /**
-     * @param Request $request
-     * @return \SAML2_Message
-     * @throws \AdactiveSas\Saml2BridgeBundle\SAML2\Binding\Exception\UnsupportedBindingException
-     */
-    public function receiveSignedMessage(Request $request)
-    {
-        throw new UnsupportedBindingException("Unsupported binding: signed POST Request is not supported at the moment");
-    }
-
-    /**
-     * @param Request $request
-     * @return \SAML2_Message
-     * @throws \AdactiveSas\Saml2BridgeBundle\SAML2\Binding\Exception\UnsupportedBindingException
-     */
-    public function receiveUnsignedMessage(Request $request)
-    {
-        throw new UnsupportedBindingException("Unsupported binding: unsigned POST Request is not supported at the moment");
-    }
-
-    /**
      * @param \SAML2_StatusResponse $response
      * @return \Symfony\Component\Form\FormInterface
      * @throws \Symfony\Component\OptionsResolver\Exception\InvalidOptionsException
@@ -205,6 +105,36 @@ class HttpPostBinding implements HttpBindingInterface
     public function getUnsignedResponseForm(\SAML2_StatusResponse $response)
     {
         return $this->getResponseForm($response, false);
+    }
+
+    /**
+     * @param \SAML2_Request $request
+     * @return Response
+     * @throws \AdactiveSas\Saml2BridgeBundle\SAML2\Binding\Exception\UnsupportedBindingException
+     */
+    public function getUnsignedRequest(\SAML2_Request $request)
+    {
+        throw new UnsupportedBindingException("Unsupported binding: unsigned POST Request is not supported at the moment");
+    }
+
+    /**
+     * @param Request $request
+     * @return ReceivedMessageQueryString
+     * @throws \AdactiveSas\Saml2BridgeBundle\SAML2\Binding\Exception\InvalidReceivedMessageQueryStringException
+     * @throws \AdactiveSas\Saml2BridgeBundle\Exception\BadRequestHttpException
+     */
+    protected function getReceivedMessageQueryString(Request $request)
+    {
+        if (!$request->isMethod(Request::METHOD_POST)) {
+            throw new BadRequestHttpException(sprintf(
+                'Could not receive Message from HTTP Request: expected a POST method, got %s',
+                $request->getMethod()
+            ));
+        }
+
+        $requestParams = $request->request->all();
+
+        return ReceivedMessageQueryString::parse($requestParams);
     }
 
     /**
@@ -240,5 +170,4 @@ class HttpPostBinding implements HttpBindingInterface
             ]
         );
     }
-
-    }
+}

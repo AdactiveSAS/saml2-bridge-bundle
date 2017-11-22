@@ -300,7 +300,7 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
 
         $this->logger->notice('Received AuthnRequest, started processing');
 
-        $inputBinding = $this->bindingContainer->get($this->identityProvider->getSsoBinding());
+        $inputBinding = $this->bindingContainer->getByRequestMethod($httpRequest->getMethod());
 
         try {
             $authRequest = $inputBinding->receiveUnsignedAuthnRequest($httpRequest);
