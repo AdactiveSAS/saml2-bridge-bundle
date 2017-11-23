@@ -32,6 +32,7 @@ class IdentityProvider extends \SAML2_Configuration_IdentityProvider
 
     /**
      * @return string
+     * @deprecated
      */
     public function getSsoBinding(){
         return \SAML2_Const::BINDING_HTTP_REDIRECT;
