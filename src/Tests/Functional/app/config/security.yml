@@ -19,4 +19,5 @@ security:
 
     access_control:
       - { path: ^/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+      - { path: ^/saml/metadata, roles: IS_AUTHENTICATED_ANONYMOUSLY }
       - { path: ^/, roles: IS_AUTHENTICATED_FULLY }
