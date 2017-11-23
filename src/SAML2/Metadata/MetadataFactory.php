@@ -76,9 +76,7 @@ class MetadataFactory
 
             $idpMetadata = new IdentityProviderMetadata();
             $idpMetadata->ssoUrl = $idp->getSsoUrl();
-            $idpMetadata->ssoBinding = $idp->getSsoBinding();
             $idpMetadata->slsUrl = $idp->getSlsUrl();
-            $idpMetadata->slsBinding = $idp->getSlsBinding();
 
             $metadata->idp = $idpMetadata;
         }
