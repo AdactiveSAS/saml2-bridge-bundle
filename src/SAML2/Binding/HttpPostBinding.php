@@ -99,11 +99,11 @@ class HttpPostBinding extends AbstractHttpBinding implements HttpBindingInterfac
 
     /**
      * @param Request $request
-     * @return ReceivedMessageQueryString
+     * @return ReceivedData
      * @throws \AdactiveSas\Saml2BridgeBundle\SAML2\Binding\Exception\InvalidReceivedMessageQueryStringException
      * @throws \AdactiveSas\Saml2BridgeBundle\Exception\BadRequestHttpException
      */
-    protected function getReceivedMessageQueryString(Request $request)
+    protected function getReceivedData(Request $request)
     {
         if (!$request->isMethod(Request::METHOD_POST)) {
             throw new BadRequestHttpException(sprintf(
@@ -114,7 +114,7 @@ class HttpPostBinding extends AbstractHttpBinding implements HttpBindingInterfac
 
         $requestParams = $request->request->all();
 
-        return ReceivedMessageQueryString::parse($requestParams);
+        return ReceivedData::fromReceivedProviderData($requestParams);
     }
 
     /**
@@ -169,5 +169,17 @@ class HttpPostBinding extends AbstractHttpBinding implements HttpBindingInterfac
             "destination" => $response->getDestination(),
             ]
         );
+    }
+
+    /**
+     * @param string $destination
+     * @param string $encodedRequest
+     * @param string $relayState
+     * @param \XMLSecurityKey $signatureKey
+     * @return Response
+     */
+    protected function buildRequest($destination, $encodedRequest, $relayState, \XMLSecurityKey $signatureKey)
+    {
+        throw new UnsupportedBindingException("Unsupported binding: build POST Request is not supported at the moment");
     }
 }

@@ -20,7 +20,7 @@ namespace AdactiveSas\Saml2BridgeBundle\Tests\Binding;
 
 
 use AdactiveSas\Saml2BridgeBundle\SAML2\Binding\Exception\InvalidReceivedMessageQueryStringException;
-use AdactiveSas\Saml2BridgeBundle\SAML2\Binding\ReceivedMessageQueryString;
+use AdactiveSas\Saml2BridgeBundle\SAML2\Binding\ReceivedData;
 use PHPUnit\Framework\TestCase;
 
 class ReceivedMessageQueryStringTest extends TestCase
@@ -31,7 +31,7 @@ class ReceivedMessageQueryStringTest extends TestCase
     {
         $samlMessage = $this->samlMessage;
         $params = ['SAMLRequest' => $samlMessage];
-        $query = ReceivedMessageQueryString::parse($params);
+        $query = ReceivedData::fromReceivedProviderData($params);
 
         $stringXml = <<<EOT
 <samlp:AuthnRequest xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" ID="_d89ed12fff5d0bcfff3f8ff6a4102d602146bc0f0b" Version="2.0" IssueInstant="2015-12-09T21:52:55Z" Destination="https://engine.surfconext.nl/authentication/idp/single-sign-on" AssertionConsumerServiceURL="https://profile.surfconext.nl/simplesaml/module.php/saml/sp/saml2-acs.php/default-sp" ProtocolBinding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"><saml:Issuer>https://profile.surfconext.nl/simplesaml/module.php/saml/sp/metadata.php/default-sp</saml:Issuer><samlp:NameIDPolicy Format="urn:oasis:names:tc:SAML:2.0:nameid-format:transient" AllowCreate="true"/></samlp:AuthnRequest>
@@ -50,7 +50,7 @@ EOT;
     {
         $samlMessage = $this->samlMessage;
         $params = ['SAMLRequest' => $samlMessage, 'RelayState' => urldecode('https%3A%2F%2Fprofile.surfconext.nl%2F')];
-        $query = ReceivedMessageQueryString::parse($params);
+        $query = ReceivedData::fromReceivedProviderData($params);
 
         $stringXml = <<<EOT
 <samlp:AuthnRequest xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" ID="_d89ed12fff5d0bcfff3f8ff6a4102d602146bc0f0b" Version="2.0" IssueInstant="2015-12-09T21:52:55Z" Destination="https://engine.surfconext.nl/authentication/idp/single-sign-on" AssertionConsumerServiceURL="https://profile.surfconext.nl/simplesaml/module.php/saml/sp/saml2-acs.php/default-sp" ProtocolBinding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"><saml:Issuer>https://profile.surfconext.nl/simplesaml/module.php/saml/sp/metadata.php/default-sp</saml:Issuer><samlp:NameIDPolicy Format="urn:oasis:names:tc:SAML:2.0:nameid-format:transient" AllowCreate="true"/></samlp:AuthnRequest>
@@ -79,7 +79,7 @@ EOT;
             'Signature' => $signature,
         ];
 
-        $query = ReceivedMessageQueryString::parse($params);
+        $query = ReceivedData::fromReceivedProviderData($params);
 
         $stringXml = <<<EOT
 <samlp:AuthnRequest xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" ID="_d89ed12fff5d0bcfff3f8ff6a4102d602146bc0f0b" Version="2.0" IssueInstant="2015-12-09T21:52:55Z" Destination="https://engine.surfconext.nl/authentication/idp/single-sign-on" AssertionConsumerServiceURL="https://profile.surfconext.nl/simplesaml/module.php/saml/sp/saml2-acs.php/default-sp" ProtocolBinding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"><saml:Issuer>https://profile.surfconext.nl/simplesaml/module.php/saml/sp/metadata.php/default-sp</saml:Issuer><samlp:NameIDPolicy Format="urn:oasis:names:tc:SAML:2.0:nameid-format:transient" AllowCreate="true"/></samlp:AuthnRequest>
@@ -110,7 +110,7 @@ EOT;
             'SAMLRequest' => $samlMessage,
             'bool' => null,
         ];
-        $query = ReceivedMessageQueryString::parse($params);
+        $query = ReceivedData::fromReceivedProviderData($params);
 
         $stringXml = <<<EOT
 <samlp:AuthnRequest xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" ID="_d89ed12fff5d0bcfff3f8ff6a4102d602146bc0f0b" Version="2.0" IssueInstant="2015-12-09T21:52:55Z" Destination="https://engine.surfconext.nl/authentication/idp/single-sign-on" AssertionConsumerServiceURL="https://profile.surfconext.nl/simplesaml/module.php/saml/sp/saml2-acs.php/default-sp" ProtocolBinding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"><saml:Issuer>https://profile.surfconext.nl/simplesaml/module.php/saml/sp/metadata.php/default-sp</saml:Issuer><samlp:NameIDPolicy Format="urn:oasis:names:tc:SAML:2.0:nameid-format:transient" AllowCreate="true"/></samlp:AuthnRequest>
@@ -131,7 +131,7 @@ EOT;
             'SAMLRequest' => $samlMessage,
             'value' => 'yo',
         ];
-        $query = ReceivedMessageQueryString::parse($params);
+        $query = ReceivedData::fromReceivedProviderData($params);
 
         $stringXml = <<<EOT
 <samlp:AuthnRequest xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" ID="_d89ed12fff5d0bcfff3f8ff6a4102d602146bc0f0b" Version="2.0" IssueInstant="2015-12-09T21:52:55Z" Destination="https://engine.surfconext.nl/authentication/idp/single-sign-on" AssertionConsumerServiceURL="https://profile.surfconext.nl/simplesaml/module.php/saml/sp/saml2-acs.php/default-sp" ProtocolBinding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"><saml:Issuer>https://profile.surfconext.nl/simplesaml/module.php/saml/sp/metadata.php/default-sp</saml:Issuer><samlp:NameIDPolicy Format="urn:oasis:names:tc:SAML:2.0:nameid-format:transient" AllowCreate="true"/></samlp:AuthnRequest>
@@ -151,7 +151,7 @@ EOT;
      * @expectedExceptionMessage Invalid ReceivedMessage query params ([]): neither parameter "SAMLRequest" nor parameter "SAMLResponse" found
      */
     public function testParseEmptyQueryString(){
-        ReceivedMessageQueryString::parse([]);
+        ReceivedData::fromReceivedProviderData([]);
     }
 
     /**
@@ -159,7 +159,7 @@ EOT;
      * @expectedExceptionMessage Invalid ReceivedMessage query ("{"SAMLRequest":"yo","SAMLResponse":"yop"}"): message must be either a request or a response but found parameters "SAMLRequest" and "SAMLResponse"
      */
     public function testParseInvalidQueryStringWithBothRequestAndResponseAttribute(){
-        ReceivedMessageQueryString::parse(['SAMLRequest' => 'yo', 'SAMLResponse' => 'yop']);
+        ReceivedData::fromReceivedProviderData(['SAMLRequest' => 'yo', 'SAMLResponse' => 'yop']);
     }
 
     public function testParseSignedQueryStringWithoutSignatureAlgorithm()
@@ -180,7 +180,7 @@ EOT;
             json_encode($params)
         ));
 
-        ReceivedMessageQueryString::parse($params);
+        ReceivedData::fromReceivedProviderData($params);
     }
 
     public function testParseSignedQueryStringWithoutSignature()
@@ -202,7 +202,7 @@ EOT;
             json_encode($params)
         ));
 
-        ReceivedMessageQueryString::parse($params);
+        ReceivedData::fromReceivedProviderData($params);
     }
 
     protected function buildInvalidReceivedMessageQueryStringException($given)

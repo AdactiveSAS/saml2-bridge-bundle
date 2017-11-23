@@ -18,12 +18,9 @@
 
 namespace AdactiveSas\Saml2BridgeBundle\SAML2\Binding;
 
-
 use AdactiveSas\Saml2BridgeBundle\Exception\BadRequestHttpException;
 use AdactiveSas\Saml2BridgeBundle\Exception\InvalidArgumentException;
 use AdactiveSas\Saml2BridgeBundle\Exception\LogicException;
-use AdactiveSas\Saml2BridgeBundle\SAML2\Binding\Exception\UnsupportedBindingException;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -34,13 +31,13 @@ abstract class AbstractHttpBinding implements HttpBindingInterface
      *
      * Throws an exception if we are unable to validate the signature.
      *
-     * @param ReceivedMessageQueryString $query g.
+     * @param ReceivedData $query g.
      * @param \XMLSecurityKey $key The key we should validate the query against.
      * @throws BadRequestHttpException
      * @throws \AdactiveSas\Saml2BridgeBundle\Exception\LogicException
      * @throws \AdactiveSas\Saml2BridgeBundle\Exception\RuntimeException
      */
-    public static function validateSignature(ReceivedMessageQueryString $query, \XMLSecurityKey $key)
+    public static function validateSignature(ReceivedData $query, \XMLSecurityKey $key)
     {
         $algo = urldecode($query->getSignatureAlgorithm());
 
@@ -54,7 +51,6 @@ abstract class AbstractHttpBinding implements HttpBindingInterface
             );
         }
     }
-
 
     /**
      * @param \SAML2_Request $request
@@ -76,29 +72,19 @@ abstract class AbstractHttpBinding implements HttpBindingInterface
 
         $requestAsXml = $request->toUnsignedXML()->ownerDocument->saveXML();
         $encodedRequest = base64_encode(gzdeflate($requestAsXml));
+        $relayState = $request->getRelayState();
 
-        /* Build the query string. */
-
-        $msg = 'SAMLRequest=' . urlencode($encodedRequest);
-
-        if ($request->getRelayState() !== NULL) {
-            $msg .= '&RelayState=' . urlencode($request->getRelayState());
-        }
-
-        /* Add the signature. */
-        $msg .= '&SigAlg=' . urlencode($securityKey->type);
-
-        $signature = $securityKey->signData($msg);
-        $msg .= '&Signature=' . urlencode(base64_encode($signature));
-
-        if (strpos($destination, '?') === FALSE) {
-            $destination .= '?' . $msg;
-        } else {
-            $destination .= '&' . $msg;
-        }
-
-        return new RedirectResponse($destination);
+        return $this->buildRequest($destination, $encodedRequest, $relayState, $request->getSignatureKey());
     }
+
+    /**
+     * @param string $destination
+     * @param string $encodedRequest
+     * @param string $relayState
+     * @param \XMLSecurityKey $signatureKey
+     * @return Response
+     */
+    abstract protected function buildRequest($destination, $encodedRequest, $relayState, \XMLSecurityKey $signatureKey);
 
     /**
      * @param Request $request
@@ -215,13 +201,13 @@ abstract class AbstractHttpBinding implements HttpBindingInterface
      */
     public function receiveSignedMessage(Request $request)
     {
-        $query = $this->getReceivedMessageQueryString($request);
+        $query = $this->getReceivedData($request);
 
         if (!$query->isSigned()) {
             throw new BadRequestHttpException('The SAMLRequest is expected to be signed but it was not');
         }
 
-        $message = $this->getReceivedSamlMessageFromQuery($query, $request);
+        $message = $this->getReceivedSamlMessageFromRecivedData($query, $request);
 
         $message->addValidator(array(get_class($this), 'validateSignature'), $query);
 
@@ -234,26 +220,26 @@ abstract class AbstractHttpBinding implements HttpBindingInterface
      */
     public function receiveUnsignedMessage(Request $request)
     {
-        return $this->getReceivedSamlMessageFromQuery($this->getReceivedMessageQueryString($request), $request);
+        return $this->getReceivedSamlMessageFromRecivedData($this->getReceivedData($request), $request);
     }
 
     /**
      * @param Request $request
-     * @return ReceivedMessageQueryString
+     * @return ReceivedData
      * @throws \AdactiveSas\Saml2BridgeBundle\SAML2\Binding\Exception\InvalidReceivedMessageQueryStringException
      * @throws \AdactiveSas\Saml2BridgeBundle\Exception\BadRequestHttpException
      */
-    abstract protected function getReceivedMessageQueryString(Request $request);
+    abstract protected function getReceivedData(Request $request);
 
 
     /**
-     * @param ReceivedMessageQueryString $query
+     * @param ReceivedData $query
      * @param Request $request
      * @return \SAML2_Message
      * @throws \AdactiveSas\Saml2BridgeBundle\Exception\BadRequestHttpException
      * @throws \AdactiveSas\Saml2BridgeBundle\Exception\InvalidArgumentException
      */
-    protected function getReceivedSamlMessageFromQuery(ReceivedMessageQueryString $query, Request $request)
+    protected function getReceivedSamlMessageFromRecivedData(ReceivedData $query, Request $request)
     {
         $decodedSamlRequest = $query->getDecodedSamlRequest();
 

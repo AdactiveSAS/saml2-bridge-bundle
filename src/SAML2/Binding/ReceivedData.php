@@ -25,7 +25,7 @@ use AdactiveSas\Saml2BridgeBundle\Exception\RuntimeException;
 use AdactiveSas\Saml2BridgeBundle\SAML2\Binding\Exception\InvalidReceivedMessageQueryStringException;
 use AdactiveSas\Saml2BridgeBundle\SAML2\Binding\Exception\InvalidRequestException;
 
-final class ReceivedMessageQueryString
+final class ReceivedData
 {
     const PARAMETER_REQUEST = 'SAMLRequest';
     const PARAMETER_RESPONSE = 'SAMLResponse';
@@ -68,11 +68,11 @@ final class ReceivedMessageQueryString
 
     /**
      * @param array $requestParams
-     * @return ReceivedMessageQueryString
+     * @return ReceivedData
      * @SuppressWarnings(PHPMD.CyclomaticComplexity) Extensive validation
      * @SuppressWarnings(PHPMD.NPathComplexity) Extensive validation
      */
-    public static function parse(array $requestParams)
+    public static function fromReceivedProviderData(array $requestParams)
     {
         foreach ($requestParams as $paramName => $paramValue) {
             if (!in_array($paramName, self::$samlParameters, true)) {

@@ -105,6 +105,29 @@ class HttpRedirectBinding extends AbstractHttpBinding implements HttpBindingInte
         return new RedirectResponse($destination);
     }
 
+    protected function buildRequest($destination, $encodedRequest, $relayState, \XMLSecurityKey $signatureKey)
+    {
+        $msg = 'SAMLRequest=' . urlencode($encodedRequest);
+
+        if ($relayState !== NULL) {
+            $msg .= '&RelayState=' . urlencode($relayState);
+        }
+
+        /* Add the signature. */
+        $msg .= '&SigAlg=' . urlencode($signatureKey->type);
+
+        $signature = $signatureKey->signData($msg);
+        $msg .= '&Signature=' . urlencode(base64_encode($signature));
+
+        if (strpos($destination, '?') === FALSE) {
+            $destination .= '?' . $msg;
+        } else {
+            $destination .= '&' . $msg;
+        }
+
+        return new RedirectResponse($destination);
+    }
+
     /**
      * @param \SAML2_Request $request
      * @return Response
@@ -117,11 +140,11 @@ class HttpRedirectBinding extends AbstractHttpBinding implements HttpBindingInte
 
     /**
      * @param Request $request
-     * @return ReceivedMessageQueryString
+     * @return ReceivedData
      * @throws \AdactiveSas\Saml2BridgeBundle\SAML2\Binding\Exception\InvalidReceivedMessageQueryStringException
      * @throws \AdactiveSas\Saml2BridgeBundle\Exception\BadRequestHttpException
      */
-    protected function getReceivedMessageQueryString(Request $request)
+    protected function getReceivedData(Request $request)
     {
         if (!$request->isMethod(Request::METHOD_GET)) {
             throw new BadRequestHttpException(sprintf(
@@ -132,6 +155,6 @@ class HttpRedirectBinding extends AbstractHttpBinding implements HttpBindingInte
 
         $requestParams = $request->query->all();
 
-        return ReceivedMessageQueryString::parse($requestParams);
+        return ReceivedData::fromReceivedProviderData($requestParams);
     }
 }
