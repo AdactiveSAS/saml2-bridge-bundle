@@ -3,11 +3,10 @@
 ## v0.7.2
 
 ### Add
-  - \AdactiveSas\Saml2BridgeBundle\Entity\IdentityProvider::getSsoBinding is deprecated and no more used
+  - Add an ability to receive GET and POST requests
+  - \AdactiveSas\Saml2BridgeBundle\Entity\IdentityProvider::getSsoBinding was removed
+  - \AdactiveSas\Saml2BridgeBundle\Entity\IdentityProvider::getSlsBinding was removed
   - NewRelic example
-
-### Fix
-  - Add an ability to receive GET and POST requests.
   
 ## v0.7.1
 
