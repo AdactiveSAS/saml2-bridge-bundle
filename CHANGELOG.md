@@ -1,12 +1,21 @@
 # CHANGELOG
 
-## v0.7.2
+## [unreleased]
 
 ### Add
-  - Add an ability to receive GET and POST requests
-  - \AdactiveSas\Saml2BridgeBundle\Entity\IdentityProvider::getSsoBinding was removed
-  - \AdactiveSas\Saml2BridgeBundle\Entity\IdentityProvider::getSlsBinding was removed
+  - receiving POST binding request
   - NewRelic example
+  - Single sign-on using `HostedIdentityProviderProcessor::processSingleSignOn` now supports GET and POST requests.
+  - Single logout using `HostedIdentityProviderProcessor::processSingleLogoutService` now supports GET and POST messages.
+
+## Change
+  - Add an ability to receive GET and POST requests
+  
+## Deprecated
+  - `\AdactiveSas\Saml2BridgeBundle\Entity\IdentityProvider::getSsoBinding` was removed, overwriting this method have no
+more effects.
+  - `\AdactiveSas\Saml2BridgeBundle\Entity\IdentityProvider::getSlsBinding` was removed, overwriting this method have no
+more effects.
   
 ## v0.7.1
 
