@@ -1,7 +1,18 @@
 {
   "name": "adactive-sas/saml2-bridge-bundle",
   "description": "This bundle aim to integrate simplesamlphp/saml2 library",
-  "keywords": ["adactiveSas", "simplesamlphp", "SAML", "SAML2", "Symfony", "Bundle"],
+  "keywords": [
+    "adactiveSas",
+    "SAML",
+    "SAML2",
+    "idp",
+    "identity-provider",
+    "saml-idp",
+    "Symfony",
+    "Bundle",
+    "symfony-bundle",
+    "bridge"
+  ],
   "type": "symfony-bundle",
   "license": "GPL-3.0",
   "minimum-stability": "stable",
