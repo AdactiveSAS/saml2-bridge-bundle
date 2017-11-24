@@ -21,7 +21,7 @@
 
     <testsuites>
         <testsuite name="SAML Bridge Bundle Test Suite">
-            <directory>src/Tests</directory>
+            <directory suffix="Test.php" >src/Tests</directory>
         </testsuite>
     </testsuites>
 
