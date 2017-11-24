@@ -401,10 +401,10 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
      */
     public function processSingleLogoutService(Request $httpRequest)
     {
-        $inputBinding = $this->bindingContainer->get($this->identityProvider->getSlsBinding());
+        $inputBinding = $this->bindingContainer->getByRequestMethod($httpRequest->getMethod());
 
         try {
-            $logoutMessage = $inputBinding->receiveUnsignedMessage($httpRequest);
+            $logoutMessage = $inputBinding->receiveUnsignedMessage($httpRequest)
         } catch (\Throwable $e) {
             // handle error, apparently the request cannot be processed :(
             $msg = sprintf('Could not process Request, error: "%s"', $e->getMessage());
