@@ -8,16 +8,16 @@ A bundle that adds SAML capabilities to your application using [simplesamlphp/sa
 
 ## SAML Support
 
-SAML Support is really limited, this bundle can be used to provide a basic identity provider with the following support:
+SAML Support is limited, this bundle can be used to provide a basic identity provider with the following support:
 - Basic metadata
 - Single Sign On:
     - Binding: 
-        - Only Http-Redirect signed request
-        - Only Http-Post signed response
+        - Http-POST & Http-Redirect signed request
+        - Http-POST &  Http-Post signed response
 - Single Logout:
     - Binding:
-        - Only Http-Redirect signed request
-        - Only Http-Redirect signed response
+        - Http-POST & Http-Redirect signed request
+        - Http-POST & Http-Redirect signed response
     - Both identity provider initiated and service provider initiated
 
 ## Getting started
