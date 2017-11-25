@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## [unreleased]
+## v0.8.0
 
 ### Add
   - receiving POST binding request
