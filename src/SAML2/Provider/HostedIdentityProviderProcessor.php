@@ -300,7 +300,7 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
 
         $this->logger->notice('Received AuthnRequest, started processing');
 
-        $inputBinding = $this->bindingContainer->get($this->identityProvider->getSsoBinding());
+        $inputBinding = $this->bindingContainer->getByRequestMethod($httpRequest->getMethod());
 
         try {
             $authRequest = $inputBinding->receiveUnsignedAuthnRequest($httpRequest);
@@ -401,7 +401,7 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
      */
     public function processSingleLogoutService(Request $httpRequest)
     {
-        $inputBinding = $this->bindingContainer->get($this->identityProvider->getSlsBinding());
+        $inputBinding = $this->bindingContainer->getByRequestMethod($httpRequest->getMethod());
 
         try {
             $logoutMessage = $inputBinding->receiveUnsignedMessage($httpRequest);

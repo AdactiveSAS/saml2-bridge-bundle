@@ -8,16 +8,16 @@ A bundle that adds SAML capabilities to your application using [simplesamlphp/sa
 
 ## SAML Support
 
-SAML Support is really limited, this bundle can be used to provide a basic identity provider with the following support:
+SAML Support is limited, this bundle can be used to provide a basic identity provider with the following support:
 - Basic metadata
 - Single Sign On:
     - Binding: 
-        - Only Http-Redirect signed request
-        - Only Http-Post signed response
+        - Http-POST & Http-Redirect signed request
+        - Http-POST &  Http-Post signed response
 - Single Logout:
     - Binding:
-        - Only Http-Redirect signed request
-        - Only Http-Redirect signed response
+        - Http-POST & Http-Redirect signed request
+        - Http-POST & Http-Redirect signed response
     - Both identity provider initiated and service provider initiated
 
 ## Getting started
@@ -299,6 +299,53 @@ $this->spMap["https://$freshdeskAccountName.freshdesk.com"] = new ServiceProvide
                 return $user->getLastName();
             },
         ],
+    ]
+);
+
+```
+###### NewRelic example
+```
+$this->spMap["rpm.newrelic.com"] = new ServiceProvider(
+    [
+        /**
+         * Returns the contents of an X509 pem certificate, without the '-----BEGIN CERTIFICATE-----' and
+         * '-----END CERTIFICATE-----'.
+         *
+         * @return null|string
+         */
+        'certificateData' => '',
+
+        /**
+         * Returns the full path to the (local) file that contains the X509 pem certificate.
+         *
+         * @return null|string
+         */
+        "certificateFile" => "",
+
+        /**
+         * @return null|string
+         */
+        "entityId" => "rpm.newrelic.com",
+
+        /**
+         * @return null|bool
+         */
+        "assertionEncryptionEnabled" => false,
+
+        "assertionConsumerUrl" => "https://rpm.newrelic.com/accounts/$accountId/sso/saml/finalize",
+        "assertionConsumerBinding" => \SAML2_Const::BINDING_HTTP_POST,
+        "singleLogoutUrl" => "",
+        "singleLogoutBinding" => \SAML2_Const::BINDING_HTTP_REDIRECT,
+        "nameIdFormat" => 'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress',
+        "nameIdValue" => function (UserInterface $user) {
+            /** @var User $user */
+            return $user->getEmailCanonical();
+        },
+        "NameQualifier" => "rpm.newrelic.com",
+        "wantSignedAuthnRequest" => false,
+        "wantSignedAuthnResponse" => false,
+        "wantSignedAssertions" => true,
+        "attributes" => [],
     ]
 );
 

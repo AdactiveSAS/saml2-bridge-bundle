@@ -2,8 +2,10 @@
 <md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata" entityID="{{ metadata.entityId }}">
     {% if metadata.hasIdp %}
         <md:IDPSSODescriptor protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
-            <md:SingleSignOnService Binding="{{ metadata.idp.ssoBinding }}" Location="{{ metadata.idp.ssoUrl }}"/>
-            <md:SingleLogoutService Binding="{{ metadata.idp.slsBinding }}" Location="{{ metadata.idp.slsUrl }}"/>
+            <md:SingleLogoutService Binding="{{ constant('\SAML2_Const::BINDING_HTTP_REDIRECT') }}" Location="{{ metadata.idp.slsUrl }}"/>
+            <md:SingleLogoutService Binding="{{ constant('\SAML2_Const::BINDING_HTTP_POST') }}" Location="{{ metadata.idp.slsUrl }}"/>
+            <md:SingleSignOnService Binding="{{ constant('\SAML2_Const::BINDING_HTTP_REDIRECT') }}" Location="{{ metadata.idp.ssoUrl }}"/>
+            <md:SingleSignOnService Binding="{{ constant('\SAML2_Const::BINDING_HTTP_POST') }}" Location="{{ metadata.idp.ssoUrl }}"/>
         </md:IDPSSODescriptor>
     {% endif %}
 </md:EntityDescriptor>

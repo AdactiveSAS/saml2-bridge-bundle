@@ -1,5 +1,22 @@
 # CHANGELOG
 
+## v0.8.0
+
+### Add
+  - receiving POST binding request
+  - NewRelic example
+  - Single sign-on using `HostedIdentityProviderProcessor::processSingleSignOn` now supports GET and POST requests.
+  - Single logout using `HostedIdentityProviderProcessor::processSingleLogoutService` now supports GET and POST messages.
+  
+## Fix
+  - remove dependency of "roave/security-advisories" to allow require without putting minimum stability dev (#10)[https://github.com/AdactiveSAS/saml2-bridge-bundle/issues/10]
+  
+## Deprecated
+  - `\AdactiveSas\Saml2BridgeBundle\Entity\IdentityProvider::getSsoBinding` was removed, overwriting this method have no
+more effects.
+  - `\AdactiveSas\Saml2BridgeBundle\Entity\IdentityProvider::getSlsBinding` was removed, overwriting this method have no
+more effects.
+  
 ## v0.7.1
 
 ### Fix
