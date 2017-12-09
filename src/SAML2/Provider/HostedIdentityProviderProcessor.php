@@ -189,14 +189,16 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
             $event->setResponse($this->continueSingleSignOn());
             return;
         }else{
-            $this->logger->debug("Cannot TRANSITION_SSO_RESPOND, state is ". $this->stateHandler->get()->getState());
+            $state = $this->stateHandler->get();
+            $this->logger->debug("Cannot TRANSITION_SSO_RESPOND", ['state' => $state === null ? null : $state->getState()]);
         }
 
         if ($this->stateHandler->can(SamlStateHandler::TRANSITION_SLS_RESPOND, false)) {
             $event->setResponse($this->continueSingleLogoutService());
             return;
         }else{
-            $this->logger->debug("Cannot TRANSITION_SLS_RESPOND, state is ". $this->stateHandler->get()->getState());
+            $state = $this->stateHandler->get();
+            $this->logger->debug("Cannot TRANSITION_SLS_RESPOND", ['state' => $state === null ? null : $state->getState()]);
         }
     }
 

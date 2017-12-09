@@ -3,16 +3,53 @@ language: php
 dist: trusty
 sudo: false
 
+cache:
+  directories:
+    - $HOME/.composer/cache/files
+
+# Use the lowest official supported symfony version http://symfony.com/doc/current/contributing/community/releases.html#schedule
+# For example we are working on Symfony 3.0, but we prefer to run test against maintained Symfony versions
+
 matrix:
   include:
+    - php: hhvm
+    - php: nightly
     - php: 5.6
     - php: 7.0
+      env:
+        - SYMFONY_VERSION=2.7.*
+        - SYMFONY_WORKFLOW_VERSION=3.3.*
+    - php: 7.0
+      env:
+        - SYMFONY_VERSION=3.3.*
+        - SYMFONY_WORKFLOW_VERSION=3.3.*
     - php: 7.1
+      env:
+        - SYMFONY_VERSION=2.7.*
+        - SYMFONY_WORKFLOW_VERSION=3.3.*
+    - php: 7.1
+      env:
+        - SYMFONY_VERSION=3.3.*
+        - SYMFONY_WORKFLOW_VERSION=3.3.*
+#    - php: 7.1
+#      env:
+#        - SYMFONY_VERSION=4.0.*
+#        - SYMFONY_WORKFLOW_VERSION=4.0.*
+  allow_failures:
+    - php: hhvm
+    - php: nightly
+#    - php: 7.1
+#      env:
+#        - SYMFONY_VERSION=4.0.*
+#        - SYMFONY_WORKFLOW_VERSION=4.0.*
   fast_finish: true
 
-before_script:
+before_install:
   - phpenv config-add travis.php.ini
-  - composer update
+
+install:
+  - if [[ $SYMFONY_VERSION != "" ]]; then composer require "symfony/symfony:${SYMFONY_VERSION}" "symfony/workflow:${SYMFONY_WORKFLOW_VERSION}" ; fi
+  - composer update --prefer-dist --no-interaction
 
 script:
   - vendor/bin/phpunit
