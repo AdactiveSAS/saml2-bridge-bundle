@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.8.1
+
+### Fix
+  - Prevent throwing exception on the `HostedIdentityProviderProcessor::onKernelResponse` when there is no current state.
+  - Unit tests
+
 ## v0.8.0
 
 ### Add
