@@ -21,7 +21,7 @@ matrix:
         - SYMFONY_WORKFLOW_VERSION=3.3.*
     - php: 7.0
       env:
-        - SYMFONY_VERSION=3.0.*
+        - SYMFONY_VERSION=3.3.*
         - SYMFONY_WORKFLOW_VERSION=3.3.*
     - php: 7.1
       env:
@@ -29,7 +29,7 @@ matrix:
         - SYMFONY_WORKFLOW_VERSION=3.3.*
     - php: 7.1
       env:
-        - SYMFONY_VERSION=3.0.*
+        - SYMFONY_VERSION=3.3.*
         - SYMFONY_WORKFLOW_VERSION=3.3.*
     - php: 7.1
       env:
