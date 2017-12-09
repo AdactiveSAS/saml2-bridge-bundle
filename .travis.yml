@@ -28,7 +28,7 @@ matrix:
   fast_finish: true
 
 install:
-   - if [[ $SYMFONY_VERSION != "" ]]; then composer require "symfony/framework-bundle:${SYMFONY_VERSION}"; fi
+  - if [[ $SYMFONY_VERSION != "" ]]; then composer require "symfony/framework-bundle:${SYMFONY_VERSION}"; fi
   - composer update --prefer-dist --no-interaction
 
 before_script:
