@@ -2,7 +2,7 @@
 
 [![Coverage Status](https://coveralls.io/repos/github/AdactiveSAS/saml2-bridge-bundle/badge.svg?branch=master)](https://coveralls.io/github/AdactiveSAS/saml2-bridge-bundle?branch=master)
 [![Build Status](https://travis-ci.org/AdactiveSAS/saml2-bridge-bundle.svg?branch=master)](https://travis-ci.org/AdactiveSAS/saml2-bridge-bundle)
-
+[![SensioLabsInsight](https://insight.sensiolabs.com/projects/9e59c817-b08a-4065-bbe5-742335adcf2b/big.png)](https://insight.sensiolabs.com/projects/9e59c817-b08a-4065-bbe5-742335adcf2b)
 A bundle that adds SAML capabilities to your application using [simplesamlphp/saml2][1] highly inspired by 
 [OpenConext/Stepup-saml-bundle][2]
 
