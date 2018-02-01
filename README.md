@@ -151,6 +151,9 @@ class SamlServiceProviderRepository implements ServiceProviderRepository
                         return $user->getLastName();
                     },
                 ],
+                "assertionNotBeforeInterval" => new \DateInterval('PT0S'),
+                "assertionNotOnOrAfterInterval" => new \DateInterval('PT5M'),
+                "assertionSessionNotOnOrAfterInterval" => new \DateInterval('P1D'),
             ]
         );
     }
@@ -176,7 +179,10 @@ class SamlServiceProviderRepository implements ServiceProviderRepository
 ```
 
 ###### Slack example
-```
+
+```php
+<?php
+
 $this->spMap["https://slack.com"] = new ServiceProvider(
     [
         /**
@@ -237,10 +243,13 @@ $this->spMap["https://slack.com"] = new ServiceProvider(
         ],
     ]
 );
+```
 
-```
 ###### Freshdesk example
-```
+
+```php
+<?php
+
 $this->spMap["https://$freshdeskAccountName.freshdesk.com"] = new ServiceProvider(
     [
         /**
@@ -304,7 +313,10 @@ $this->spMap["https://$freshdeskAccountName.freshdesk.com"] = new ServiceProvide
 
 ```
 ###### NewRelic example
-```
+
+```php
+<?php
+
 $this->spMap["rpm.newrelic.com"] = new ServiceProvider(
     [
         /**

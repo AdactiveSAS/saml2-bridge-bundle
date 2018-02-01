@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## [unreleased]
+
+### Add
+  - `ServiceProvider#assertionNotBeforeInterval` property to customize assertion validity
+  - `ServiceProvider#assertionNotOnOrAfterInterval` property to customize assertion validity
+  - `ServiceProvider#assertionSessionNotOnOrAfterInterval` property to customize assertion validity
+
 ## v0.8.1
 
 ### Fix
