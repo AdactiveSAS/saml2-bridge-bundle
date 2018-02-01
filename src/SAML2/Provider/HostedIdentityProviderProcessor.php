@@ -590,8 +590,9 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
 
         $assertionBuilder = new AssertionBuilder();
         $assertionBuilder
-            ->setNotOnOrAfter(new \DateInterval('PT5M'))
-            ->setSessionNotOnOrAfter(new \DateInterval('P1D'))
+            ->setNotBefore($serviceProvider->getAssertionNotBeforeInterval())
+            ->setNotOnOrAfter($serviceProvider->getAssertionNotOnOrAfterInterval())
+            ->setSessionNotOnOrAfter($serviceProvider->getAssertionSessionNotOnORAfterInterval())
             ->setIssuer($this->identityProvider->getEntityId())
             ->setNameId($nameIdValue, $serviceProvider->getNameIdFormat(), $serviceProvider->getNameQualifier(), $authnRequest->getIssuer())
             ->setConfirmationMethod(SAML2_Const::CM_BEARER)
