@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## [unreleased]
+## v0.9.0
 
 ### Add
   - `ServiceProvider#assertionNotBeforeInterval` property to customize assertion validity
