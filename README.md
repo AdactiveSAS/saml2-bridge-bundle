@@ -2,7 +2,7 @@
 
 [![Coverage Status](https://coveralls.io/repos/github/AdactiveSAS/saml2-bridge-bundle/badge.svg?branch=master)](https://coveralls.io/github/AdactiveSAS/saml2-bridge-bundle?branch=master)
 [![Build Status](https://travis-ci.org/AdactiveSAS/saml2-bridge-bundle.svg?branch=master)](https://travis-ci.org/AdactiveSAS/saml2-bridge-bundle)
-
+[![SensioLabsInsight](https://insight.sensiolabs.com/projects/9e59c817-b08a-4065-bbe5-742335adcf2b/big.png)](https://insight.sensiolabs.com/projects/9e59c817-b08a-4065-bbe5-742335adcf2b)
 A bundle that adds SAML capabilities to your application using [simplesamlphp/saml2][1] highly inspired by 
 [OpenConext/Stepup-saml-bundle][2]
 
@@ -151,6 +151,9 @@ class SamlServiceProviderRepository implements ServiceProviderRepository
                         return $user->getLastName();
                     },
                 ],
+                "assertionNotBeforeInterval" => new \DateInterval('PT0S'),
+                "assertionNotOnOrAfterInterval" => new \DateInterval('PT5M'),
+                "assertionSessionNotOnOrAfterInterval" => new \DateInterval('P1D'),
             ]
         );
     }
@@ -176,7 +179,10 @@ class SamlServiceProviderRepository implements ServiceProviderRepository
 ```
 
 ###### Slack example
-```
+
+```php
+<?php
+
 $this->spMap["https://slack.com"] = new ServiceProvider(
     [
         /**
@@ -237,10 +243,13 @@ $this->spMap["https://slack.com"] = new ServiceProvider(
         ],
     ]
 );
+```
 
-```
 ###### Freshdesk example
-```
+
+```php
+<?php
+
 $this->spMap["https://$freshdeskAccountName.freshdesk.com"] = new ServiceProvider(
     [
         /**
@@ -304,7 +313,10 @@ $this->spMap["https://$freshdeskAccountName.freshdesk.com"] = new ServiceProvide
 
 ```
 ###### NewRelic example
-```
+
+```php
+<?php
+
 $this->spMap["rpm.newrelic.com"] = new ServiceProvider(
     [
         /**

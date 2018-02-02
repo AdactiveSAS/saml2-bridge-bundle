@@ -23,6 +23,27 @@ namespace AdactiveSas\Saml2BridgeBundle\Entity;
 class ServiceProvider extends \SAML2_Configuration_ServiceProvider
 {
     /**
+     * @return \DateInterval
+     */
+    public function getAssertionNotBeforeInterval(){
+        return $this->get('assertionNotBeforeInterval', new \DateInterval('PT0S'));
+    }
+
+    /**
+     * @return \DateInterval
+     */
+    public function getAssertionNotOnOrAfterInterval(){
+        return $this->get('assertionNotOnOrAfterInterval', new \DateInterval('PT5M'));
+    }
+
+    /**
+     * @return \DateInterval
+     */
+    public function getAssertionSessionNotOnORAfterInterval(){
+        return $this->get('assertionSessionNotOnOrAfterInterval', new \DateInterval('P1D'));
+    }
+
+    /**
      * @return string|null
      */
     public function getAssertionConsumerUrl()
