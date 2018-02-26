@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v0.9.1
+
+### Fix
+  - Dev dependencies to fix Travis build
+
 ## v0.9.0
 
 ### Add
