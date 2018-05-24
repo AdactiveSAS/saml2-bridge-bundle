@@ -197,7 +197,7 @@ class AssertionBuilder
     public function setAttribute($name, $value)
     {
         $attributes = $this->assertion->getAttributes();
-        $attributes[$name] = [$value];
+        $attributes[$name] = is_array($value) ? $value : [$value];
 
         return $this->setAttributes($attributes);
     }
