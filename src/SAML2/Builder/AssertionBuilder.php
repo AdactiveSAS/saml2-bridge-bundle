@@ -50,7 +50,6 @@ class AssertionBuilder
         $confirmation->Method = \SAML2_Const::CM_BEARER;
 
         $confirmationData = new \SAML2_XML_saml_SubjectConfirmationData();
-        $confirmationData->NotBefore = $this->issueInstant->getTimestamp();
 
         $confirmation->SubjectConfirmationData = $confirmationData;
 
@@ -86,9 +85,11 @@ class AssertionBuilder
 
         $this->assertion->setNotBefore($beforeTime->getTimestamp());
 
-        $confirmation = $this->assertion->getSubjectConfirmation()[0];
-        $confirmation->SubjectConfirmationData->NotOnOrAfter = $beforeTime->getTimestamp();
-        $this->assertion->setSubjectConfirmation([$confirmation]);
+        if ($interval !== null) {
+            $confirmation = $this->assertion->getSubjectConfirmation()[0];
+            $confirmation->SubjectConfirmationData->NotOnOrAfter = $beforeTime->getTimestamp();
+            $this->assertion->setSubjectConfirmation([$confirmation]);
+        }
 
         return $this;
     }

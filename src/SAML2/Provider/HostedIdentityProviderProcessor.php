@@ -589,10 +589,8 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
 
 
         $assertionBuilder = new AssertionBuilder();
-        if ($serviceProvider->getAssertionNotBeforeInterval()) {
-            $assertionBuilder->setNotBefore($serviceProvider->getAssertionNotBeforeInterval());
-        }
         $assertionBuilder
+            ->setNotBefore($serviceProvider->getAssertionNotBeforeInterval())
             ->setNotOnOrAfter($serviceProvider->getAssertionNotOnOrAfterInterval())
             ->setSessionNotOnOrAfter($serviceProvider->getAssertionSessionNotOnORAfterInterval())
             ->setIssuer($this->identityProvider->getEntityId())
