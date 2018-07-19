@@ -189,14 +189,16 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
             $event->setResponse($this->continueSingleSignOn());
             return;
         }else{
-            $this->logger->debug("Cannot TRANSITION_SSO_RESPOND, state is ". $this->stateHandler->get()->getState());
+            $state = $this->stateHandler->get();
+            $this->logger->debug("Cannot TRANSITION_SSO_RESPOND", ['state' => $state === null ? null : $state->getState()]);
         }
 
         if ($this->stateHandler->can(SamlStateHandler::TRANSITION_SLS_RESPOND, false)) {
             $event->setResponse($this->continueSingleLogoutService());
             return;
         }else{
-            $this->logger->debug("Cannot TRANSITION_SLS_RESPOND, state is ". $this->stateHandler->get()->getState());
+            $state = $this->stateHandler->get();
+            $this->logger->debug("Cannot TRANSITION_SLS_RESPOND", ['state' => $state === null ? null : $state->getState()]);
         }
     }
 
@@ -401,7 +403,7 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
      */
     public function processSingleLogoutService(Request $httpRequest)
     {
-        $inputBinding = $this->bindingContainer->get($this->identityProvider->getSlsBinding());
+        $inputBinding = $this->bindingContainer->getByRequestMethod($httpRequest->getMethod());
 
         try {
             $logoutMessage = $inputBinding->receiveUnsignedMessage($httpRequest);
@@ -588,8 +590,9 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
 
         $assertionBuilder = new AssertionBuilder();
         $assertionBuilder
-            ->setNotOnOrAfter(new \DateInterval('PT5M'))
-            ->setSessionNotOnOrAfter(new \DateInterval('P1D'))
+            ->setNotBefore($serviceProvider->getAssertionNotBeforeInterval())
+            ->setNotOnOrAfter($serviceProvider->getAssertionNotOnOrAfterInterval())
+            ->setSessionNotOnOrAfter($serviceProvider->getAssertionSessionNotOnORAfterInterval())
             ->setIssuer($this->identityProvider->getEntityId())
             ->setNameId($nameIdValue, $serviceProvider->getNameIdFormat(), $serviceProvider->getNameQualifier(), $authnRequest->getIssuer())
             ->setConfirmationMethod(SAML2_Const::CM_BEARER)

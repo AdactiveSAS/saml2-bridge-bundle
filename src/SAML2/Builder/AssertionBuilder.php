@@ -77,6 +77,26 @@ class AssertionBuilder
      * @param \DateInterval $interval
      * @return $this
      */
+    public function setNotBefore(\DateInterval $interval = null)
+    {
+        $beforeTime = clone $this->issueInstant;
+        if($interval !== null) {
+            $beforeTime->sub($interval);
+        }
+
+        $this->assertion->setNotBefore($beforeTime->getTimestamp());
+
+        $confirmation = $this->assertion->getSubjectConfirmation()[0];
+        $confirmation->SubjectConfirmationData->NotOnOrAfter = $beforeTime->getTimestamp();
+        $this->assertion->setSubjectConfirmation([$confirmation]);
+
+        return $this;
+    }
+
+    /**
+     * @param \DateInterval $interval
+     * @return $this
+     */
     public function setNotOnOrAfter(\DateInterval $interval)
     {
         $endTime = clone $this->issueInstant;
