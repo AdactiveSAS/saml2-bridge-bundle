@@ -266,6 +266,13 @@ class AssertionBuilder
         return $this;
     }
 
+    public function setValidAudiences(array $validAudiences = NULL)
+    {
+        $this->assertion->setValidAudiences($validAudiences);
+
+        return $this;
+    }
+
     /**
      * @param \XMLSecurityKey $privateKey
      * @param \XMLSecurityKey $publicCert

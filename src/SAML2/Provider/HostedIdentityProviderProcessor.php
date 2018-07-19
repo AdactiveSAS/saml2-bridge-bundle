@@ -589,8 +589,10 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
 
 
         $assertionBuilder = new AssertionBuilder();
+        if ($serviceProvider->getAssertionNotBeforeInterval()) {
+            $assertionBuilder->setNotBefore($serviceProvider->getAssertionNotBeforeInterval());
+        }
         $assertionBuilder
-            ->setNotBefore($serviceProvider->getAssertionNotBeforeInterval())
             ->setNotOnOrAfter($serviceProvider->getAssertionNotOnOrAfterInterval())
             ->setSessionNotOnOrAfter($serviceProvider->getAssertionSessionNotOnORAfterInterval())
             ->setIssuer($this->identityProvider->getEntityId())
@@ -598,7 +600,8 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
             ->setConfirmationMethod(SAML2_Const::CM_BEARER)
             ->setInResponseTo($authnRequest->getId())
             ->setRecipient($serviceProvider->getAssertionConsumerUrl())
-            ->setAuthnContext($state->getAuthnContext());
+            ->setAuthnContext($state->getAuthnContext())
+            ->setValidAudiences($serviceProvider->getValidAudiences());
         foreach ($serviceProvider->getAttributes() as $attributeName => $attributeCallback) {
             $assertionBuilder->setAttribute($attributeName, $attributeCallback($user));
         }
