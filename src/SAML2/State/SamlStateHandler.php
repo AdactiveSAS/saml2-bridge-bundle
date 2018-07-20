@@ -101,7 +101,7 @@ class SamlStateHandler implements EventSubscriberInterface
         // Reload from session
         $state = $this->session->get(self::SESSION_NAME_ATTRIBUTE);
         
-        $this->state = $state ?? new SamlState();
+        $this->state = $state ? $state : new SamlState();
     }
 
     /**
