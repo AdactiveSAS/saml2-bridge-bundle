@@ -87,7 +87,7 @@ class AssertionBuilder
         $this->assertion->setNotBefore($beforeTime->getTimestamp());
 
         $confirmation = $this->assertion->getSubjectConfirmation()[0];
-        $confirmation->SubjectConfirmationData->NotOnOrAfter = $beforeTime->getTimestamp();
+        $confirmation->SubjectConfirmationData->NotBefore = $beforeTime->getTimestamp();
         $this->assertion->setSubjectConfirmation([$confirmation]);
 
         return $this;
@@ -197,7 +197,7 @@ class AssertionBuilder
     public function setAttribute($name, $value)
     {
         $attributes = $this->assertion->getAttributes();
-        $attributes[$name] = [$value];
+        $attributes[$name] = is_array($value) ? $value : [$value];
 
         return $this->setAttributes($attributes);
     }

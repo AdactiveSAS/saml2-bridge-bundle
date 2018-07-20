@@ -612,7 +612,7 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
             ->setStatus(\SAML2_Const::STATUS_SUCCESS)
             ->setIssuer($this->identityProvider->getEntityId())
             ->setRelayState($authnRequest->getRelayState())
-            ->setDestination($serviceProvider->getAssertionConsumerUrl())
+            ->setDestination($authnRequest->getAssertionConsumerServiceURL() ?? $serviceProvider->getAssertionConsumerUrl())
             ->addAssertionBuilder($assertionBuilder)
             ->setInResponseTo($authnRequest->getId())
             ->setWantSignedAssertions($serviceProvider->wantSignedAssertions())

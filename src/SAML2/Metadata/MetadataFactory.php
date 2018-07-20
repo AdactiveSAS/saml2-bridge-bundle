@@ -55,12 +55,16 @@ class MetadataFactory
      */
     public function getMetadataResponse()
     {
-        return $this->templateEngine->renderResponse(
+        $response = $this->templateEngine->renderResponse(
             "AdactiveSasSaml2BridgeBundle:Metadata:metadata.xml.twig",
             [
                 "metadata" => $this->buildMetadata()
             ]
         );
+        
+        $response->headers->set('Content-Type', 'xml');        
+        
+        return $response;
     }
 
     /**
