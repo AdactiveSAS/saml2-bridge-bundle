@@ -52,7 +52,7 @@ before_install:
 
 install:
   - if [[ $SYMFONY_VERSION != "" ]]; then composer require "symfony/symfony:${SYMFONY_VERSION}" "symfony/workflow:${SYMFONY_WORKFLOW_VERSION}" ; fi
-  - composer update --prefer-dist --no-interaction
+  - composer update --prefer-source --no-interaction
 
 script:
   - vendor/bin/phpunit
