@@ -153,4 +153,12 @@ class ServiceProvider extends \SAML2_Configuration_ServiceProvider
     {
         return $this->get('maxRetryLogin', 0);
     }
+
+    /**
+     * @return array|null
+     */
+    public function getValidAudiences()
+    {
+        return $this->get('validAudiences');
+    }
 }

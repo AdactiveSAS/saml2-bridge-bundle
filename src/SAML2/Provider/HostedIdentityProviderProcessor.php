@@ -598,7 +598,8 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
             ->setConfirmationMethod(SAML2_Const::CM_BEARER)
             ->setInResponseTo($authnRequest->getId())
             ->setRecipient($serviceProvider->getAssertionConsumerUrl())
-            ->setAuthnContext($state->getAuthnContext());
+            ->setAuthnContext($state->getAuthnContext())
+            ->setValidAudiences($serviceProvider->getValidAudiences());
         foreach ($serviceProvider->getAttributes() as $attributeName => $attributeCallback) {
             $assertionBuilder->setAttribute($attributeName, $attributeCallback($user));
         }
@@ -608,11 +609,15 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
         }
         $assertionBuilder->setAttributesNameFormat(\SAML2_Const::NAMEFORMAT_UNSPECIFIED);
 
+        $destination = $authnRequest->getAssertionConsumerServiceURL()
+            ? $authnRequest->getAssertionConsumerServiceURL()
+            : $serviceProvider->getAssertionConsumerUrl();
+
         $authnResponseBuilder
             ->setStatus(\SAML2_Const::STATUS_SUCCESS)
             ->setIssuer($this->identityProvider->getEntityId())
             ->setRelayState($authnRequest->getRelayState())
-            ->setDestination($serviceProvider->getAssertionConsumerUrl())
+            ->setDestination($destination)
             ->addAssertionBuilder($assertionBuilder)
             ->setInResponseTo($authnRequest->getId())
             ->setWantSignedAssertions($serviceProvider->wantSignedAssertions())

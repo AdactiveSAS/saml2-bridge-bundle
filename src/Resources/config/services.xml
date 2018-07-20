@@ -5,7 +5,7 @@
     xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
 
     <services>
-        <service id="adactive_sas_saml2_bridge.container" class="AdactiveSas\Saml2BridgeBundle\SAML2\BridgeContainer">
+        <service id="adactive_sas_saml2_bridge.container" class="AdactiveSas\Saml2BridgeBundle\SAML2\BridgeContainer" public="true">
             <argument type="service" id="logger" />
         </service>
         <service id="adactive_sas_saml2_bridge.state.handler" class="AdactiveSas\Saml2BridgeBundle\SAML2\State\SamlStateHandler">
@@ -25,7 +25,7 @@
             <argument type="service" id="adactive_sas_saml2_bridge.http.redirect_binding" />
             <argument type="service" id="adactive_sas_saml2_bridge.http.post_binding" />
         </service>
-        <service id="adactive_sas_saml2_bridge.metadata.factory" class="AdactiveSas\Saml2BridgeBundle\SAML2\Metadata\MetadataFactory">
+        <service id="adactive_sas_saml2_bridge.metadata.factory" class="AdactiveSas\Saml2BridgeBundle\SAML2\Metadata\MetadataFactory" public="true">
             <argument type="service" id="templating" />
             <argument type="service" id="adactive_sas_saml2_bridge.configuration.hosted_entities" />
         </service>

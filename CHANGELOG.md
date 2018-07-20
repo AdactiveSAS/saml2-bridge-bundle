@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## v0.10.0
+### Add
+  - Symfony 4 support
+  - Able to set `assertionNotBeforeInterval` as `null` (fix for `SubjectConfirmationData notBefore`)
+  - Allow to send an array of values for `attributes`
+  - Add validAudiences in the SP configuration
+
+### Fix
+  - Missing Content-type xml on metadata response
+  - SubjectConfirmationData notBefore must be null for Bearer confirmation
+  - `AssertionBuilder.setNotBefore` should set `NotBefore` subjectConfirmationData and not `NotOnOrAfter`
+
 ## v0.9.1
 
 ### Fix
