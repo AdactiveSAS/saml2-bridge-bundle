@@ -34,7 +34,7 @@ class SingleSignOnTest extends WebTestCase
      */
     private function getAuthnRequestUri()
     {
-        return "/saml/sso/?SAMLRequest=fZFBa4NAEIXvgfwHb3tSV02MLCpIcxHSS9L20EuZ6gSlumt3xtKfX00oaaF2mMvAm%2B89ZlKCvhtUMXKjj%2Fg%2BIrFTEKHl1ug7o2ns0Z7QfrQVPh4PmWiYB1K%2Bz5PSM9yg9c7whj5UJNYr54%2FaT8pWwwy8rbf14M0If%2Fb3iYxwyn0mXl6TOgyDSLpyd0ZXBtHW3YQ1uHENGMhNnCQBLviURCOWmhg0ZyKUwc6VGzeUD0GktlPHz8J5QkuXHKEnhfPZd5rUnCATo9XKALWkNPRIiit1Ku4PahIq%2BD7IgvONM%2FwPGqxhU5lO5FdQOu%2BoS3CbL122R4YaGFL%2Fp3q9us6%2Ff5d%2FAQ%3D%3D";
+        return "/saml/sso/?SAMLRequest=fZFBa4NAEIXvgfwHb3tSV02MLCpIcxHSS9L20EuZ6gSlumt3xtKfX42UtNB0mMvAm28eb1KCvhtUMXKjj%2Fg%2BIrFTEKHl1ug7o2ns0Z7QfrQVPh4PmWiYB1K%2Bz5PSM9yg9c7whv7M8aEisV45f9R%2BkrcaZuqV0daDN3OWZSIjnHKfiZfXpA7DIJKu3J3RlUG0dTdhDW5cAwZyEydJgDfulEQjlpoYNGcilMHOlRs3lA9BpLZTx8%2FCeUJLFx%2BhJ4Xz2Xea1OwgE6PVygC1pDT0SIordSruD2oSKvhO5cblK2f4HzRYw6YyncgXUDrvqItxm9%2BKt0eGGhhS%2F6d6vVrm3w%2FMvwA%3D";
     }
 
     public function testAuthnRequestWithAlreadyLoggedInUser()

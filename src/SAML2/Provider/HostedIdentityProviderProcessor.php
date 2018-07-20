@@ -608,11 +608,15 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
         }
         $assertionBuilder->setAttributesNameFormat(\SAML2_Const::NAMEFORMAT_UNSPECIFIED);
 
+        $destination = $authnRequest->getAssertionConsumerServiceURL()
+            ? $authnRequest->getAssertionConsumerServiceURL()
+            : $serviceProvider->getAssertionConsumerUrl();
+
         $authnResponseBuilder
             ->setStatus(\SAML2_Const::STATUS_SUCCESS)
             ->setIssuer($this->identityProvider->getEntityId())
             ->setRelayState($authnRequest->getRelayState())
-            ->setDestination($authnRequest->getAssertionConsumerServiceURL() ?? $serviceProvider->getAssertionConsumerUrl())
+            ->setDestination($destination)
             ->addAssertionBuilder($assertionBuilder)
             ->setInResponseTo($authnRequest->getId())
             ->setWantSignedAssertions($serviceProvider->wantSignedAssertions())
