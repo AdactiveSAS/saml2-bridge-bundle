@@ -86,8 +86,9 @@ class AssertionBuilder
         $this->assertion->setNotBefore($beforeTime->getTimestamp());
 
         if ($interval !== null) {
+            /** @var \SAML2_XML_saml_SubjectConfirmation $confirmation */
             $confirmation = $this->assertion->getSubjectConfirmation()[0];
-            $confirmation->SubjectConfirmationData->NotOnOrAfter = $beforeTime->getTimestamp();
+            $confirmation->SubjectConfirmationData->NotBefore = $beforeTime->getTimestamp();
             $this->assertion->setSubjectConfirmation([$confirmation]);
         }
 
