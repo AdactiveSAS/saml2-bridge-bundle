@@ -8,6 +8,7 @@
 
 ### Fix
   - SubjectConfirmationData notBefore must be null for Bearer confirmation
+  - `AssertionBuilder.setNotBefore` should set `NotBefore` subjectConfirmationData and not `NotOnOrAfter`
 
 ## v0.9.1
 
