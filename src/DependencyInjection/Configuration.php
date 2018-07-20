@@ -52,8 +52,10 @@ class Configuration implements ConfigurationInterface
         $node
             ->children()
                 ->arrayNode('hosted')
+                    ->isRequired()
                     ->children()
                         ->scalarNode('metadata_route')
+                            ->isRequired()
                             ->info('The name of the route to provide metadata')
                         ->end()
                         ->arrayNode('identity_provider')

@@ -99,7 +99,9 @@ class SamlStateHandler implements EventSubscriberInterface
     public function onKernelRequest(GetResponseEvent $event)
     {
         // Reload from session
-        $this->state = $this->session->get(self::SESSION_NAME_ATTRIBUTE, new SamlState());
+        $state = $this->session->get(self::SESSION_NAME_ATTRIBUTE);
+        
+        $this->state = $state ? $state : new SamlState();
     }
 
     /**
