@@ -598,7 +598,8 @@ class HostedIdentityProviderProcessor implements EventSubscriberInterface
             ->setConfirmationMethod(SAML2_Const::CM_BEARER)
             ->setInResponseTo($authnRequest->getId())
             ->setRecipient($serviceProvider->getAssertionConsumerUrl())
-            ->setAuthnContext($state->getAuthnContext());
+            ->setAuthnContext($state->getAuthnContext())
+            ->setValidAudiences($serviceProvider->getValidAudiences());
         foreach ($serviceProvider->getAttributes() as $attributeName => $attributeCallback) {
             $assertionBuilder->setAttribute($attributeName, $attributeCallback($user));
         }

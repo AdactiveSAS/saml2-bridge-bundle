@@ -50,7 +50,6 @@ class AssertionBuilder
         $confirmation->Method = \SAML2_Const::CM_BEARER;
 
         $confirmationData = new \SAML2_XML_saml_SubjectConfirmationData();
-        $confirmationData->NotBefore = $this->issueInstant->getTimestamp();
 
         $confirmation->SubjectConfirmationData = $confirmationData;
 
@@ -86,9 +85,12 @@ class AssertionBuilder
 
         $this->assertion->setNotBefore($beforeTime->getTimestamp());
 
-        $confirmation = $this->assertion->getSubjectConfirmation()[0];
-        $confirmation->SubjectConfirmationData->NotBefore = $beforeTime->getTimestamp();
-        $this->assertion->setSubjectConfirmation([$confirmation]);
+        if ($interval !== null) {
+            /** @var \SAML2_XML_saml_SubjectConfirmation $confirmation */
+            $confirmation = $this->assertion->getSubjectConfirmation()[0];
+            $confirmation->SubjectConfirmationData->NotBefore = $beforeTime->getTimestamp();
+            $this->assertion->setSubjectConfirmation([$confirmation]);
+        }
 
         return $this;
     }
@@ -197,7 +199,10 @@ class AssertionBuilder
     public function setAttribute($name, $value)
     {
         $attributes = $this->assertion->getAttributes();
-        $attributes[$name] = is_array($value) ? $value : [$value];
+        if (!is_array($value)) {
+            $value = [$value];
+        }
+        $attributes[$name] = $value;
 
         return $this->setAttributes($attributes);
     }
@@ -259,6 +264,13 @@ class AssertionBuilder
     public function setIssuer($issuer)
     {
         $this->assertion->setIssuer($issuer);
+
+        return $this;
+    }
+
+    public function setValidAudiences(array $validAudiences = NULL)
+    {
+        $this->assertion->setValidAudiences($validAudiences);
 
         return $this;
     }

@@ -151,6 +151,9 @@ class SamlServiceProviderRepository implements ServiceProviderRepository
                         return $user->getLastName();
                     },
                 ],
+                "validAudiences" => [
+                    "https://test.fake/saml/acs",
+                ],
                 "assertionNotBeforeInterval" => new \DateInterval('PT0S'),
                 "assertionNotOnOrAfterInterval" => new \DateInterval('PT5M'),
                 "assertionSessionNotOnOrAfterInterval" => new \DateInterval('P1D'),
