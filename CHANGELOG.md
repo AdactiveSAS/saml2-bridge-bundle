@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## v0.10.0
+### Add
+  - Able to set `assertionNotBeforeInterval` as `null` (fix for `SubjectConfirmationData notBefore`)
+  - Allow to send an array of values for `attributes`
+  - Add validAudiences in the SP configuration
+
+### Fix
+  - SubjectConfirmationData notBefore must be null for Bearer confirmation
+
 ## v0.9.1
 
 ### Fix
