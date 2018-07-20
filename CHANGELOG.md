@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## [unreleased]
+
+### Fix
+  - Missing Content-type xml on metadata response
+  - `AssertionBuilder.setNotBefore` should set `NotBefore` subjectConfirmationData and not `NotOnOrAfter`
+
+### Add
+  - Symfony 4 support
+  - `AssertionBuilder` now accept setting array values 
+
 ## v0.9.1
 
 ### Fix
